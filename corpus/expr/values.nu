@@ -1,78 +1,91 @@
 =====
-values-001-numbers
+values-bool
 =====
 
-[69 6.9 0b1000101 0o105 6.9e1 6.9E+1 0x45 -69 +69]
+true
+false
 
 -----
 
 (nu_script
-  (pipeline
-    (pipe_element
-      (val_list
-        (val_number)
-        (val_number)
-        (val_number)
-        (val_number)
-        (val_number)
-        (val_number)
-        (val_number)
-        (val_number)
-        (val_number)))))
+  (literal_bool)
+  (literal_bool)
+)
 
 =====
-values-002-booleans
+values-int
 =====
 
-
-[true false (not true)]
-
-------
-
-(nu_script
-  (pipeline
-    (pipe_element
-      (val_list
-        (val_bool)
-        (val_bool)
-        (expr_parenthesized
-          (pipeline
-            (pipe_element
-              (expr_unary
-                (val_bool)))))))))
-
-=====
-values-003-nothing
-=====
-
-null
+42
+-42
++42
+0b1000101
+0o105
+0x45
+4_2
+-4_2
++4_2
+4___2___
+-4__2___
++4__2___
+0b100010_1
+0b1_0_0_0_1_0_1_
+0o10_5
+0x4_5
 
 -----
 
 (nu_script
-  (pipeline
-    (pipe_element
-      (val_nothing))))
+  (literal_int)
+  (literal_int)
+  (literal_int)
+  (literal_int)
+  (literal_int)
+  (literal_int)
+  (literal_int)
+  (literal_int)
+  (literal_int)
+  (literal_int)
+  (literal_int)
+  (literal_int)
+  (literal_int)
+  (literal_int)
+  (literal_int)
+  (literal_int))
 
 =====
-values-004-binary
+values-float
 =====
 
-0x[1 2 3 4 5] | 0b[100, 100, 100]
+4.
+4.2
+4.2e1
+4.2E+1
++4.
++4.2
++4.2e1
++4.2E+1
+-4.
+-4.2
+-4.2e1
+-4.2E-1
+.42
 
 -----
 
 (nu_script
-  (pipeline
-    (pipe_element
-      (val_binary
-        (hex_digit)
-        (hex_digit)
-        (hex_digit)
-        (hex_digit)
-        (hex_digit)))
-    (pipe_element
-      (val_binary
-        (hex_digit)
-        (hex_digit)
-        (hex_digit)))))
+  (literal_float)
+  (literal_float)
+  (literal_float)
+  (literal_float)
+  (literal_float)
+  (literal_float)
+  (literal_float)
+  (literal_float)
+  (literal_float)
+  (literal_float)
+  (literal_float)
+  (literal_float)
+  (ERROR)
+)
+

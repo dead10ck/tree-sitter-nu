@@ -1,26 +1,136 @@
 module.exports = grammar({
   name: "nu",
 
-  word: ($) => $.identifier,
+  word: ($) => $._token,
 
-  extras: ($) => [/\s/, $.comment],
+  extras: ($) => [/ /, $.comment],
+
+  // externals: ($) => [],
 
   // conflicts: ($) => [],
+
+  // supertypes: ($) => [],
+
+  // inline: ($) => [],
 
   rules: {
     /// File
 
-    nu_script: ($) => seq(optional($.shebang), optional($._block_body)),
+    nu_script: ($) =>
+      seq(optional($.shebang), repeat(/\s/), optional($._block_body)),
 
     shebang: ($) => seq("#!", /.*\n/),
 
-    // _block_body: ($) =>
+    /*
+      pub enum Expr {
+          Bool(bool),
+          Int(i64),
+          Float(f64),
+          Binary(Vec<u8>),
+          Range(
+              Option<Box<Expression>>, // from
+              Option<Box<Expression>>, // next value after "from"
+              Option<Box<Expression>>, // to
+              RangeOperator,
+          ),
+          Var(VarId),
+          VarDecl(VarId),
+          Call(Box<Call>),
+          ExternalCall(Box<Expression>, Vec<Expression>, bool), // head, args, is_subexpression
+          Operator(Operator),
+          RowCondition(BlockId),
+          UnaryNot(Box<Expression>),
+          BinaryOp(Box<Expression>, Box<Expression>, Box<Expression>), //lhs, op, rhs
+          Subexpression(BlockId),
+          Block(BlockId),
+          Closure(BlockId),
+          MatchBlock(Vec<(MatchPattern, Expression)>),
+          List(Vec<Expression>),
+          Table(Vec<Expression>, Vec<Vec<Expression>>),
+          Record(Vec<RecordItem>),
+          Keyword(Vec<u8>, Span, Box<Expression>),
+          ValueWithUnit(Box<Expression>, Spanned<Unit>),
+          DateTime(chrono::DateTime<FixedOffset>),
+          Filepath(String),
+          Directory(String),
+          GlobPattern(String),
+          String(String),
+          CellPath(CellPath),
+          FullCellPath(Box<FullCellPath>),
+          ImportPattern(ImportPattern),
+          Overlay(Option<BlockId>), // block ID of the overlay's origin module
+          Signature(Box<Signature>),
+          StringInterpolation(Vec<Expression>),
+          MatchPattern(Box<MatchPattern>),
+          Spread(Box<Expression>),
+          Nothing,
+          Garbage,
+      }
+    */
+
+    _block_body: ($) =>
+      repeat1(seq(choice($._expression, $.comment), repeat("\n"))),
 
     /// Identifiers
 
-    // identifier: ($) => token(/[_\p{XID_Start}][_\p{XID_Continue}]*/),
+    // from combination of parser.rs::is_identifier_byte and lex.rs::lex_item {
+    _token: (_) => /[^;#\s\r\n\t]+/,
+    identifier: (_) => /[^.\[\]{}()+\-*^\/\\=!<>&|"'`;#\s\r\n\t]+/,
 
     // _terminator: ($) => choice(PUNC().semicolon, "\n"),
+
+    _expression: ($) => $._literal,
+
+    _literal: ($) => choice($.literal_bool, $.literal_int, $.literal_float),
+
+    literal_bool: (_) => choice("true", "false"),
+
+    literal_int: ($) =>
+      choice(
+        seq(optional($._sign), $._digit_decimal),
+        seq("0x", optional($._sign), $._digit_hex),
+        seq("0o", optional($._sign), $._digit_octal),
+        seq("0b", optional($._sign), $._digit_binary),
+      ),
+
+    _sign: (_) => /[+-]/,
+    _digit_decimal: (_) => /\d[\d_]*/,
+    _digit_hex: (_) => /[0-9a-fA-F][_0-9a-fA-F]*/,
+    _digit_octal: (_) => /[0-7][_0-7]*/,
+    _digit_binary: (_) => /[01][_01]*/,
+
+    // Taken from the Rust reference, since the underlying nu parser just parses
+    // Rust floats, except we don't need the suffix parts, and, unlike Rust, in
+    // nu, the sign is actually tokenized into the AST's expression for numeric
+    // values.
+    //
+    // FLOAT_LITERAL :
+    //   DEC_LITERAL . (not immediately followed by ., _ or an XID_Start character)
+    //    | DEC_LITERAL . DEC_LITERAL SUFFIX_NO_E?
+    //    | DEC_LITERAL (. DEC_LITERAL)? FLOAT_EXPONENT SUFFIX?
+    //
+    // FLOAT_EXPONENT :
+    //    (e|E) (+|-)? (DEC_DIGIT|_)* DEC_DIGIT (DEC_DIGIT|_)*
+    literal_float: ($) =>
+      seq(
+        optional($._sign),
+        choice(
+          /inf|nan/i,
+          seq($._digit_decimal, $._float_exponent),
+          prec(
+            2,
+            seq(
+              $._digit_decimal,
+              ".",
+              $._digit_decimal,
+              optional($._float_exponent),
+            ),
+          ),
+          seq($._digit_decimal, "."),
+        ),
+      ),
+
+    _float_exponent: ($) => seq(/[eE]/, optional($._sign), $._digit_decimal),
 
     /// Controls
 
@@ -136,10 +246,6 @@ module.exports = grammar({
     //   ),
 
     /// Literals
-    // val_nothing: ($) => SPECIAL().null,
-
-    // val_bool: ($) => choice(SPECIAL().true, SPECIAL().false),
-
     // val_variable: ($) => choice($._var, seq($._var, $.cell_path)),
 
     // _var: ($) =>
@@ -173,8 +279,6 @@ module.exports = grammar({
     //     repeat(field("digit", seq($.hex_digit, optional(PUNC().comma)))),
     //     BRACK().close_brack,
     //   ),
-
-    hex_digit: ($) => token(/[0-9a-fA-F]+/),
 
     // val_date: ($) =>
     //   token(
@@ -305,7 +409,8 @@ module.exports = grammar({
 
     /// Comments
 
-    // comment: ($) => seq(PUNC().hash, /.*\n/),
+    comment: ($) => prec.left(2, repeat1($._line_comment)),
+    _line_comment: ($) => token(seq("#", /.*/)),
   },
 });
 
@@ -328,6 +433,14 @@ module.exports = grammar({
 
 /// nushell keywords
 const KEYWORD = {
+  true: "true",
+  false: "false",
+  null: "null",
+
+  pos_infinity: "inf",
+  neg_infinity: "-inf",
+  nan: "NaN",
+
   def: "def",
   def_env: "def-env",
   alias: "alias",
@@ -371,7 +484,16 @@ const KEYWORD = {
 };
 
 // redirection
-const REDIR = ["err>", "out>", "e>", "o>", "err+out>", "out+err>", "o+e>", "e+o>"];
+const REDIR = [
+  "err>",
+  "out>",
+  "e>",
+  "o>",
+  "err+out>",
+  "out+err>",
+  "o+e>",
+  "e+o>",
+];
 
 // punctuation
 const PUNC = {
@@ -391,7 +513,7 @@ const PUNC = {
   underscore: "_",
 
   semicolon: ";",
-}
+};
 
 // delimiters
 const BRACK = {
@@ -406,7 +528,7 @@ const BRACK = {
 
   open_paren: "(",
   close_paren: ")",
-}
+};
 
 // operators
 const OPR = {
@@ -462,7 +584,7 @@ const OPR = {
   range_inclusive: "..",
   range_inclusive2: "..=",
   range_exclusive: "..<",
-}
+};
 
 /// operator precedence
 /// taken from `nu_protocol::`
@@ -482,11 +604,11 @@ const PREC = {
   xor: 3,
   or: 2,
   assignment: 1,
-}
+};
 
 const STATEMENT_PREC = {
   control: 1,
-}
+};
 
 /// map of operators and their precedence
 function TABLE() {
@@ -531,21 +653,11 @@ function TABLE() {
   ];
 }
 
-/// special tokens
-const SPECIAL = {
-  true: "true",
-  false: "false",
-  null: "null",
-
-  pos_infinity: "inf",
-  neg_infinity: "-inf",
-  not_a_number: "NaN",
-}
-
 /// nushell flat types
 
 /// taken from `nu_parser::parser::parse_shape_name()`
 // i.e not composite types like list<int> or record<name: string>
+// prettier-ignore
 const FLAT_TYPES = [
   "any", "binary", "block", "bool", "cell-path", "closure", "cond",
   "datetime", "directory", "duration", "directory", "duration",
@@ -557,10 +669,12 @@ const FLAT_TYPES = [
 
 /// duration units, are case sensitive
 /// taken from `nu_parser::parse_duration_bytes()`
+// prettier-ignore
 const DURATION_UNIT = ["ns", "µs", "us", "ms", "sec", "min", "hr", "day", "wk"]
 
 /// filesize units, are case insensitive
 /// taken from `nu_parser::parse_filesize_bytes()`
+// prettier-ignore
 const FILESIZE_UNIT = [
   "b", "B",
 
