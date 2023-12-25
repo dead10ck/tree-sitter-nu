@@ -1,4 +1,16 @@
 =====
+values-nothing
+=====
+
+null
+
+-----
+
+(nu_script
+  (literal_null)
+)
+
+=====
 values-bool
 =====
 

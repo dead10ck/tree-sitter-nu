@@ -96,6 +96,10 @@
       "members": [
         {
           "type": "SYMBOL",
+          "name": "literal_null"
+        },
+        {
+          "type": "SYMBOL",
           "name": "literal_bool"
         },
         {
@@ -107,6 +111,10 @@
           "name": "literal_float"
         }
       ]
+    },
+    "literal_null": {
+      "type": "STRING",
+      "value": "null"
     },
     "literal_bool": {
       "type": "CHOICE",

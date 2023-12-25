@@ -33,37 +33,42 @@ module.exports = grammar({
               Option<Box<Expression>>, // to
               RangeOperator,
           ),
-          Var(VarId),
-          VarDecl(VarId),
-          Call(Box<Call>),
-          ExternalCall(Box<Expression>, Vec<Expression>, bool), // head, args, is_subexpression
-          Operator(Operator),
-          RowCondition(BlockId),
-          UnaryNot(Box<Expression>),
-          BinaryOp(Box<Expression>, Box<Expression>, Box<Expression>), //lhs, op, rhs
-          Subexpression(BlockId),
-          Block(BlockId),
-          Closure(BlockId),
-          MatchBlock(Vec<(MatchPattern, Expression)>),
-          List(Vec<Expression>),
-          Table(Vec<Expression>, Vec<Vec<Expression>>),
-          Record(Vec<RecordItem>),
-          Keyword(Vec<u8>, Span, Box<Expression>),
+
+          Nothing,
           ValueWithUnit(Box<Expression>, Spanned<Unit>),
           DateTime(chrono::DateTime<FixedOffset>),
           Filepath(String),
           Directory(String),
           GlobPattern(String),
           String(String),
+
+          StringInterpolation(Vec<Expression>),
           CellPath(CellPath),
           FullCellPath(Box<FullCellPath>),
-          ImportPattern(ImportPattern),
-          Overlay(Option<BlockId>), // block ID of the overlay's origin module
-          Signature(Box<Signature>),
-          StringInterpolation(Vec<Expression>),
-          MatchPattern(Box<MatchPattern>),
+          List(Vec<Expression>),
+          Record(Vec<RecordItem>),
+          Table(Vec<Expression>, Vec<Vec<Expression>>),
+
           Spread(Box<Expression>),
-          Nothing,
+          ImportPattern(ImportPattern),
+          Subexpression(BlockId),
+          Block(BlockId),
+          Closure(BlockId),
+          MatchBlock(Vec<(MatchPattern, Expression)>),
+          MatchPattern(Box<MatchPattern>),
+          Overlay(Option<BlockId>), // block ID of the overlay's origin module
+
+          Var(VarId),
+          VarDecl(VarId),
+          Signature(Box<Signature>),
+          Call(Box<Call>),
+          ExternalCall(Box<Expression>, Vec<Expression>, bool), // head, args, is_subexpression
+          Operator(Operator),
+          RowCondition(BlockId),
+          UnaryNot(Box<Expression>),
+          BinaryOp(Box<Expression>, Box<Expression>, Box<Expression>), //lhs, op, rhs
+
+          Keyword(Vec<u8>, Span, Box<Expression>),
           Garbage,
       }
     */
@@ -81,7 +86,10 @@ module.exports = grammar({
 
     _expression: ($) => $._literal,
 
-    _literal: ($) => choice($.literal_bool, $.literal_int, $.literal_float),
+    _literal: ($) =>
+      choice($.literal_null, $.literal_bool, $.literal_int, $.literal_float),
+
+    literal_null: (_) => "null",
 
     literal_bool: (_) => choice("true", "false"),
 
