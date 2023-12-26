@@ -40,10 +40,24 @@ values-int
 4___2___
 -4__2___
 +4__2___
+_4___2___
+-_4__2___
++_4__2___
+___4___2___
+-___4__2___
++___4__2___
 0b100010_1
 0b1_0_0_0_1_0_1_
 0o10_5
 0x4_5
+0b_100010_1
+0b_1_0_0_0_1_0_1_
+0o_10_5
+0x_4_5
+0b____100010_1
+0b____1_0_0_0_1_0_1_
+0o____10_5
+0x____4_5
 
 -----
 
@@ -63,7 +77,22 @@ values-int
   (literal_int)
   (literal_int)
   (literal_int)
-  (literal_int))
+  (literal_int)
+  (literal_int)
+  (literal_int)
+  (literal_int)
+  (literal_int)
+  (literal_int)
+  (literal_int)
+  (literal_int)
+  (literal_int)
+  (literal_int)
+  (literal_int)
+  (literal_int)
+  (literal_int)
+  (literal_int)
+  (literal_int)
+)
 
 =====
 values-float
@@ -82,6 +111,19 @@ values-float
 -4.2e1
 -4.2E-1
 .42
+4_.
+4_.___2
+4_.2e1
+4_.2E+1
++4_.
++4_._2_____
++4_.2e___3_
++4_.2E+_1
+-____4_.
+-____4_.2
+-____4_.2e1
+-____4_.2E-1___
+.4_2
 
 -----
 
@@ -99,5 +141,35 @@ values-float
   (literal_float)
   (literal_float)
   (ERROR)
+  (literal_float)
+  (literal_float)
+  (literal_float)
+  (literal_float)
+  (literal_float)
+  (literal_float)
+  (literal_float)
+  (literal_float)
+  (literal_float)
+  (literal_float)
+  (literal_float)
+  (literal_float)
+  (ERROR)
 )
 
+=====
+values-binary
+=====
+
+0x[aa]
+0x[aabb]
+0x[aa bb]
+0x[aa, bb]
+
+-----
+
+(nu_script
+  (literal_binary)
+  (literal_binary)
+  (literal_binary)
+  (literal_binary)
+)

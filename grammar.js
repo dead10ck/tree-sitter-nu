@@ -1,3 +1,143 @@
+const _SIGN = /[+-]/;
+
+const _DIGIT_DECIMAL = /[0-9]/;
+const _DIGIT_HEX = /[0-9a-fA-F]/;
+const _DIGIT_OCTAL = /[0-7]/;
+const _DIGIT_BINARY = /[01]/;
+
+const _LITERAL_DECIMAL = token(
+  seq(/_*/, _DIGIT_DECIMAL, repeat(choice("_", _DIGIT_DECIMAL))),
+);
+
+const _LITERAL_HEX = token(
+  seq(/_*/, _DIGIT_HEX, repeat(choice("_", _DIGIT_HEX))),
+);
+
+const _LITERAL_OCTAL = token(
+  seq(/_*/, _DIGIT_OCTAL, repeat(choice("_", _DIGIT_OCTAL))),
+);
+
+const _LITERAL_BINARY = token(
+  seq(/_*/, _DIGIT_BINARY, repeat(choice("_", _DIGIT_BINARY))),
+);
+
+const _FLOAT_EXPONENT = token(seq(/[eE]/, optional(_SIGN), _LITERAL_DECIMAL));
+
+function _binary_rule(prefix, digit) {
+  return seq(
+    prefix + "[",
+    field("bytes", token(repeat(seq(digit, /[ ]*,?[ ]*/)))),
+    "]",
+  );
+}
+
+/*
+/// operator precedence
+/// taken from `nu_protocol::`
+const PREC = {
+  range: 15,
+  power: 14,
+  multiplicative: 13,
+  additive: 12,
+  bit_shift: 11,
+  comparative: 10,
+  membership: 9,
+  regex: 8,
+  bit_and: 7,
+  bit_xor: 6,
+  bit_or: 5,
+  and: 4,
+  xor: 3,
+  or: 2,
+  assignment: 1,
+};
+
+/// map of operators and their precedence
+function TABLE() {
+  const multiplicatives = choice(
+    OPR().times,
+    OPR().divide,
+    OPR().modulo,
+    OPR().floor,
+  );
+
+  const comparatives = choice(
+    OPR().equal,
+    OPR().not_equal,
+    OPR().less_than,
+    OPR().less_than_equal,
+    OPR().greater_than,
+    OPR().greater_than_equal,
+  );
+
+  const memberships = choice(
+    OPR().in,
+    OPR().not_in,
+    OPR().starts_with,
+    OPR().ends_with,
+  );
+
+  // `range` is not included here and is handled separately
+  return [
+    [PREC().power, choice(OPR().power, OPR().append)],
+    [PREC().multiplicative, multiplicatives],
+    [PREC().additive, choice(OPR().plus, OPR().minus)],
+    [PREC().bit_shift, choice(OPR().bit_shl, OPR().bit_shr)],
+    [PREC().comparative, comparatives],
+    [PREC().membership, memberships],
+    [PREC().regex, choice(OPR().regex_match, OPR().regex_not_match)],
+    [PREC().bit_and, OPR().bit_and],
+    [PREC().bit_xor, OPR().bit_xor],
+    [PREC().bit_or, OPR().bit_or],
+    [PREC().and, OPR().and],
+    [PREC().xor, OPR().xor],
+    [PREC().or, OPR().or],
+  ];
+}
+
+/// nushell flat types
+
+/// taken from `nu_parser::parser::parse_shape_name()`
+// i.e not composite types like list<int> or record<name: string>
+// prettier-ignore
+const FLAT_TYPES = [
+  "any", "binary", "block", "bool", "cell-path", "closure", "cond",
+  "datetime", "directory", "duration", "directory", "duration",
+  "error", "expr", "float", "decimal", "filesize", "full-cell-path",
+  "glob", "int", "import-pattern", "keyword", "math", "nothing",
+  "number", "one-of", "operator", "path", "range", "signature",
+  "string", "table", "variable", "var-with-opt-type", "record", "list",
+];
+*/
+
+/// duration units, are case sensitive
+/// taken from `nu_parser::parse_duration_bytes()`
+// prettier-ignore
+const DURATION_UNIT = ["ns", "µs", "us", "ms", "sec", "min", "hr", "day", "wk"]
+
+/// filesize units, are case insensitive
+/// taken from `nu_parser::parse_filesize_bytes()`
+// prettier-ignore
+const FILESIZE_UNIT = [
+  "b", "B",
+
+  "kb", "kB", "Kb", "KB",
+  "mb", "mB", "Mb", "MB",
+  "gb", "gB", "Gb", "GB",
+  "tb", "tB", "Tb", "TB",
+  "pb", "pB", "Pb", "PB",
+  "eb", "eB", "Eb", "EB",
+  "zb", "zB", "Zb", "ZB",
+
+  "kib", "kiB", "kIB", "kIb", "Kib", "KIb", "KIB",
+  "mib", "miB", "mIB", "mIb", "Mib", "MIb", "MIB",
+  "gib", "giB", "gIB", "gIb", "Gib", "GIb", "GIB",
+  "tib", "tiB", "tIB", "tIb", "Tib", "TIb", "TIB",
+  "pib", "piB", "pIB", "pIb", "Pib", "PIb", "PIB",
+  "eib", "eiB", "eIB", "eIb", "Eib", "EIb", "EIB",
+  "zib", "ziB", "zIB", "zIb", "Zib", "ZIb", "ZIB",
+]
+
 module.exports = grammar({
   name: "nu",
 
@@ -23,6 +163,7 @@ module.exports = grammar({
 
     /*
       pub enum Expr {
+          Nothing,
           Bool(bool),
           Int(i64),
           Float(f64),
@@ -34,7 +175,6 @@ module.exports = grammar({
               RangeOperator,
           ),
 
-          Nothing,
           ValueWithUnit(Box<Expression>, Spanned<Unit>),
           DateTime(chrono::DateTime<FixedOffset>),
           Filepath(String),
@@ -87,25 +227,35 @@ module.exports = grammar({
     _expression: ($) => $._literal,
 
     _literal: ($) =>
-      choice($.literal_null, $.literal_bool, $.literal_int, $.literal_float),
+      choice(
+        $.literal_null,
+        $.literal_bool,
+        $.literal_int,
+        $.literal_float,
+        $.literal_binary,
+      ),
 
     literal_null: (_) => "null",
 
     literal_bool: (_) => choice("true", "false"),
 
-    literal_int: ($) =>
-      choice(
-        seq(optional($._sign), $._digit_decimal),
-        seq("0x", optional($._sign), $._digit_hex),
-        seq("0o", optional($._sign), $._digit_octal),
-        seq("0b", optional($._sign), $._digit_binary),
+    // unlike Rust, leading _ is allowed, but the token must contain at least
+    // one digit
+    //
+    // also, we cannot use standalone rules for individual digits to avoid the
+    // repetition because they all have to be parsed as a single token to avoid
+    // conflicts, and you cannot use the token() function on a non-terminal rule
+    //
+    // yes, as of this writing, the sign can come *after* the radix prefix
+    literal_int: (_) =>
+      token(
+        choice(
+          seq(optional(_SIGN), _LITERAL_DECIMAL),
+          seq("0x", optional(_SIGN), _LITERAL_HEX),
+          seq("0o", optional(_SIGN), _LITERAL_OCTAL),
+          seq("0b", optional(_SIGN), _LITERAL_BINARY),
+        ),
       ),
-
-    _sign: (_) => /[+-]/,
-    _digit_decimal: (_) => /\d[\d_]*/,
-    _digit_hex: (_) => /[0-9a-fA-F][_0-9a-fA-F]*/,
-    _digit_octal: (_) => /[0-7][_0-7]*/,
-    _digit_binary: (_) => /[01][_01]*/,
 
     // Taken from the Rust reference, since the underlying nu parser just parses
     // Rust floats, except we don't need the suffix parts, and, unlike Rust, in
@@ -120,25 +270,32 @@ module.exports = grammar({
     // FLOAT_EXPONENT :
     //    (e|E) (+|-)? (DEC_DIGIT|_)* DEC_DIGIT (DEC_DIGIT|_)*
     literal_float: ($) =>
-      seq(
-        optional($._sign),
-        choice(
-          /inf|nan/i,
-          seq($._digit_decimal, $._float_exponent),
-          prec(
-            2,
-            seq(
-              $._digit_decimal,
-              ".",
-              $._digit_decimal,
-              optional($._float_exponent),
+      token(
+        seq(
+          optional(_SIGN),
+          choice(
+            /inf|nan/i,
+            seq(_LITERAL_DECIMAL, _FLOAT_EXPONENT),
+            prec(
+              1,
+              seq(
+                _LITERAL_DECIMAL,
+                ".",
+                _LITERAL_DECIMAL,
+                optional(_FLOAT_EXPONENT),
+              ),
             ),
+            seq(_LITERAL_DECIMAL, "."),
           ),
-          seq($._digit_decimal, "."),
         ),
       ),
 
-    _float_exponent: ($) => seq(/[eE]/, optional($._sign), $._digit_decimal),
+    literal_binary: (_) =>
+      choice(
+        _binary_rule("0x", repeat1(_DIGIT_HEX)),
+        _binary_rule("0o", repeat1(_DIGIT_OCTAL)),
+        _binary_rule("0b", repeat1(_DIGIT_BINARY)),
+      ),
 
     /// Controls
 
@@ -421,284 +578,3 @@ module.exports = grammar({
     _line_comment: ($) => token(seq("#", /.*/)),
   },
 });
-
-/// To parse pipelines correctly grammar needs to know now pipeline may end.
-/// For example in following closure
-/// ```
-/// {||
-///   print qwe
-///   print rty
-/// }
-/// ```
-/// two print calls must be separated either by newline or ';', but last call
-/// may not be separated from closing bracket at all `{|| print qwe; print rty}`
-/// and in `()` blocks newlines are not considered statement terminators at all.
-/// To correctly parse these situations distinct rules for different types of
-/// statements are needed. These rules are differentiated by suffix, and only
-/// difference between them is terminator parameter used in pipeline rule that
-/// is terminating statements. This function automaticaly generates all rules
-/// for a given terminator and names them with specified suffix.
-
-/// nushell keywords
-const KEYWORD = {
-  true: "true",
-  false: "false",
-  null: "null",
-
-  pos_infinity: "inf",
-  neg_infinity: "-inf",
-  nan: "NaN",
-
-  def: "def",
-  def_env: "def-env",
-  alias: "alias",
-  use: "use",
-  export_env: "export-env",
-  extern: "extern",
-  module: "module",
-
-  let: "let",
-  let_env: "let-env",
-  mut: "mut",
-  const: "const",
-
-  hide: "hide",
-  hide_env: "hide-env",
-
-  source: "source",
-  source_env: "source-env",
-
-  overlay: "overlay",
-  register: "register",
-
-  for: "for",
-  loop: "loop",
-  while: "while",
-  error: "error",
-
-  do: "do",
-  if: "if",
-  else: "else",
-  try: "try",
-  catch: "catch",
-  match: "match",
-
-  break: "break",
-  continue: "continue",
-  return: "return",
-
-  as: "as",
-  in: "in",
-};
-
-// redirection
-const REDIR = [
-  "err>",
-  "out>",
-  "e>",
-  "o>",
-  "err+out>",
-  "out+err>",
-  "o+e>",
-  "e+o>",
-];
-
-// punctuation
-const PUNC = {
-  at: "@",
-  dot: ".",
-  hash: "#",
-  pipe: "|",
-  rest: "...",
-  eq: "=",
-  colon: ":",
-  comma: ",",
-  caret: "^",
-  dollar: "$",
-  fat_arrow: "=>",
-  thin_arrow: "->",
-  question: "?",
-  underscore: "_",
-
-  semicolon: ";",
-};
-
-// delimiters
-const BRACK = {
-  open_angle: "<",
-  close_angle: ">",
-
-  open_brack: "[",
-  close_brack: "]",
-
-  open_brace: "{",
-  close_brace: "}",
-
-  open_paren: "(",
-  close_paren: ")",
-};
-
-// operators
-const OPR = {
-  // arithmetic
-  plus: "+",
-  minus: "-",
-  times: "*",
-  divide: "/",
-  modulo: "mod",
-  floor: "//",
-  power: "**",
-  append: "++",
-
-  // comparison
-  equal: "==",
-  not_equal: "!=",
-  less_than: "<",
-  less_than_equal: "<=",
-  greater_than: ">",
-  greater_than_equal: ">=",
-
-  // regex matching
-  regex_match: "=~",
-  regex_not_match: "!~",
-
-  // logical
-  not: "not",
-  and: "and",
-  or: "or",
-  xor: "xor",
-
-  // bitwise
-  bit_or: "bit-or",
-  bit_xor: "bit-xor",
-  bit_and: "bit-and",
-  bit_shl: "bit-shl",
-  bit_shr: "bit-shr",
-
-  // membership tests
-  in: "in",
-  not_in: "not-in",
-  starts_with: "starts-with",
-  ends_with: "ends-with",
-
-  // assignment
-  assign_add: "+=",
-  assign_sub: "-=",
-  assign_mul: "*=",
-  assign_div: "/=",
-  assign_append: "++=",
-
-  // range
-  range_inclusive: "..",
-  range_inclusive2: "..=",
-  range_exclusive: "..<",
-};
-
-/// operator precedence
-/// taken from `nu_protocol::`
-const PREC = {
-  range: 15,
-  power: 14,
-  multiplicative: 13,
-  additive: 12,
-  bit_shift: 11,
-  comparative: 10,
-  membership: 9,
-  regex: 8,
-  bit_and: 7,
-  bit_xor: 6,
-  bit_or: 5,
-  and: 4,
-  xor: 3,
-  or: 2,
-  assignment: 1,
-};
-
-const STATEMENT_PREC = {
-  control: 1,
-};
-
-/// map of operators and their precedence
-function TABLE() {
-  const multiplicatives = choice(
-    OPR().times,
-    OPR().divide,
-    OPR().modulo,
-    OPR().floor,
-  );
-
-  const comparatives = choice(
-    OPR().equal,
-    OPR().not_equal,
-    OPR().less_than,
-    OPR().less_than_equal,
-    OPR().greater_than,
-    OPR().greater_than_equal,
-  );
-
-  const memberships = choice(
-    OPR().in,
-    OPR().not_in,
-    OPR().starts_with,
-    OPR().ends_with,
-  );
-
-  // `range` is not included here and is handled separately
-  return [
-    [PREC().power, choice(OPR().power, OPR().append)],
-    [PREC().multiplicative, multiplicatives],
-    [PREC().additive, choice(OPR().plus, OPR().minus)],
-    [PREC().bit_shift, choice(OPR().bit_shl, OPR().bit_shr)],
-    [PREC().comparative, comparatives],
-    [PREC().membership, memberships],
-    [PREC().regex, choice(OPR().regex_match, OPR().regex_not_match)],
-    [PREC().bit_and, OPR().bit_and],
-    [PREC().bit_xor, OPR().bit_xor],
-    [PREC().bit_or, OPR().bit_or],
-    [PREC().and, OPR().and],
-    [PREC().xor, OPR().xor],
-    [PREC().or, OPR().or],
-  ];
-}
-
-/// nushell flat types
-
-/// taken from `nu_parser::parser::parse_shape_name()`
-// i.e not composite types like list<int> or record<name: string>
-// prettier-ignore
-const FLAT_TYPES = [
-  "any", "binary", "block", "bool", "cell-path", "closure", "cond",
-  "datetime", "directory", "duration", "directory", "duration",
-  "error", "expr", "float", "decimal", "filesize", "full-cell-path",
-  "glob", "int", "import-pattern", "keyword", "math", "nothing",
-  "number", "one-of", "operator", "path", "range", "signature",
-  "string", "table", "variable", "var-with-opt-type", "record", "list",
-];
-
-/// duration units, are case sensitive
-/// taken from `nu_parser::parse_duration_bytes()`
-// prettier-ignore
-const DURATION_UNIT = ["ns", "µs", "us", "ms", "sec", "min", "hr", "day", "wk"]
-
-/// filesize units, are case insensitive
-/// taken from `nu_parser::parse_filesize_bytes()`
-// prettier-ignore
-const FILESIZE_UNIT = [
-  "b", "B",
-
-  "kb", "kB", "Kb", "KB",
-  "mb", "mB", "Mb", "MB",
-  "gb", "gB", "Gb", "GB",
-  "tb", "tB", "Tb", "TB",
-  "pb", "pB", "Pb", "PB",
-  "eb", "eB", "Eb", "EB",
-  "zb", "zB", "Zb", "ZB",
-
-  "kib", "kiB", "kIB", "kIb", "Kib", "KIb", "KIB",
-  "mib", "miB", "mIB", "mIb", "Mib", "MIb", "MIB",
-  "gib", "giB", "gIB", "gIb", "Gib", "GIb", "GIB",
-  "tib", "tiB", "tIB", "tIb", "Tib", "TIb", "TIB",
-  "pib", "piB", "pIB", "pIb", "Pib", "PIb", "PIB",
-  "eib", "eiB", "eIB", "eIb", "Eib", "EIb", "EIB",
-  "zib", "ziB", "zIB", "zIb", "Zib", "ZIb", "ZIB",
-]

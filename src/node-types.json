@@ -5,17 +5,12 @@
     "fields": {}
   },
   {
+    "type": "literal_binary",
+    "named": true,
+    "fields": {}
+  },
+  {
     "type": "literal_bool",
-    "named": true,
-    "fields": {}
-  },
-  {
-    "type": "literal_float",
-    "named": true,
-    "fields": {}
-  },
-  {
-    "type": "literal_int",
     "named": true,
     "fields": {}
   },
@@ -29,6 +24,10 @@
       "types": [
         {
           "type": "comment",
+          "named": true
+        },
+        {
+          "type": "literal_binary",
           "named": true
         },
         {
@@ -68,24 +67,32 @@
     "named": false
   },
   {
-    "type": ".",
+    "type": "0b[",
     "named": false
   },
   {
-    "type": "0b",
+    "type": "0o[",
     "named": false
   },
   {
-    "type": "0o",
+    "type": "0x[",
     "named": false
   },
   {
-    "type": "0x",
+    "type": "]",
     "named": false
   },
   {
     "type": "false",
     "named": false
+  },
+  {
+    "type": "literal_float",
+    "named": true
+  },
+  {
+    "type": "literal_int",
+    "named": true
   },
   {
     "type": "literal_null",
