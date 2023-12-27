@@ -168,6 +168,12 @@ module.exports = grammar({
           Int(i64),
           Float(f64),
           Binary(Vec<u8>),
+          DateTime(chrono::DateTime<FixedOffset>),
+          Filepath(String),
+          Directory(String),
+          GlobPattern(String),
+          String(String),
+
           Range(
               Option<Box<Expression>>, // from
               Option<Box<Expression>>, // next value after "from"
@@ -176,11 +182,6 @@ module.exports = grammar({
           ),
 
           ValueWithUnit(Box<Expression>, Spanned<Unit>),
-          DateTime(chrono::DateTime<FixedOffset>),
-          Filepath(String),
-          Directory(String),
-          GlobPattern(String),
-          String(String),
 
           StringInterpolation(Vec<Expression>),
           CellPath(CellPath),
@@ -233,6 +234,7 @@ module.exports = grammar({
         $.literal_int,
         $.literal_float,
         $.literal_binary,
+        $.literal_date,
       ),
 
     literal_null: (_) => "null",
@@ -295,6 +297,14 @@ module.exports = grammar({
         _binary_rule("0x", repeat1(_DIGIT_HEX)),
         _binary_rule("0o", repeat1(_DIGIT_OCTAL)),
         _binary_rule("0b", repeat1(_DIGIT_BINARY)),
+      ),
+
+    literal_date: (_) =>
+      token(
+        choice(
+          /[0-9]+-[0-9]{2}-[0-9]{2}/,
+          /[0-9]+-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?([Zz]|([-+])([01]\d|2[0-3]):?([0-5]\d)?)?/,
+        ),
       ),
 
     /// Controls

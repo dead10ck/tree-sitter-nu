@@ -35,6 +35,10 @@
           "named": true
         },
         {
+          "type": "literal_date",
+          "named": true
+        },
+        {
           "type": "literal_float",
           "named": true
         },
@@ -85,6 +89,10 @@
   {
     "type": "false",
     "named": false
+  },
+  {
+    "type": "literal_date",
+    "named": true
   },
   {
     "type": "literal_float",
