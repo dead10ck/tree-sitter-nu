@@ -1,6 +1,6 @@
 [
   {
-    "type": "comment",
+    "type": "line_comment",
     "named": true,
     "fields": {}
   },
@@ -23,7 +23,7 @@
       "required": false,
       "types": [
         {
-          "type": "comment",
+          "type": "line_comment",
           "named": true
         },
         {

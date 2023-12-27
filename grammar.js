@@ -143,7 +143,7 @@ module.exports = grammar({
 
   word: ($) => $._token,
 
-  extras: ($) => [/ /, $.comment],
+  extras: ($) => [/ \t/],
 
   // externals: ($) => [],
 
@@ -214,7 +214,7 @@ module.exports = grammar({
     */
 
     _block_body: ($) =>
-      repeat1(seq(choice($._expression, $.comment), repeat("\n"))),
+      repeat1(seq(choice($._expression, $.line_comment), repeat("\n"))),
 
     /// Identifiers
 
@@ -574,7 +574,7 @@ module.exports = grammar({
 
     /// Comments
 
-    comment: ($) => prec.left(2, repeat1($._line_comment)),
-    _line_comment: ($) => token(seq("#", /.*/)),
+    line_comment: ($) => prec(1, repeat1($._comment)),
+    _comment: (_) => /#.*\n/,
   },
 });
