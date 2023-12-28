@@ -1,5 +1,5 @@
 =====
-line_comment
+line-comment
 =====
 
 # this is a comment
@@ -11,10 +11,8 @@ line_comment
 -----
 
 (nu_script
-  (pipeline
-    (line_comment)
-    (line_comment)
-    (line_comment)
-    (line_comment)
-  )
+  (line_comment)
+  (line_comment)
+  (line_comment)
+  (line_comment)
 )

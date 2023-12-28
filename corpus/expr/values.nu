@@ -7,8 +7,8 @@ null
 -----
 
 (nu_script
-  (pipeline
-    (literal_null)
+  (block
+    (pipeline (literal_null))
   )
 )
 
@@ -22,12 +22,11 @@ false
 -----
 
 (nu_script
-  (pipeline
-    (literal_bool)
-    (literal_bool)
+  (block
+    (pipeline (literal_bool))
+    (pipeline (literal_bool))
   )
 )
-
 =====
 values-int
 =====
@@ -66,37 +65,37 @@ ___4___2___
 -----
 
 (nu_script
-  (pipeline
-    (literal_int)
-    (literal_int)
-    (literal_int)
-    (literal_int)
-    (literal_int)
-    (literal_int)
-    (literal_int)
-    (literal_int)
-    (literal_int)
-    (literal_int)
-    (literal_int)
-    (literal_int)
-    (literal_int)
-    (literal_int)
-    (literal_int)
-    (literal_int)
-    (literal_int)
-    (literal_int)
-    (literal_int)
-    (literal_int)
-    (literal_int)
-    (literal_int)
-    (literal_int)
-    (literal_int)
-    (literal_int)
-    (literal_int)
-    (literal_int)
-    (literal_int)
-    (literal_int)
-    (literal_int)
+  (block
+    (pipeline (literal_int))
+    (pipeline (literal_int))
+    (pipeline (literal_int))
+    (pipeline (literal_int))
+    (pipeline (literal_int))
+    (pipeline (literal_int))
+    (pipeline (literal_int))
+    (pipeline (literal_int))
+    (pipeline (literal_int))
+    (pipeline (literal_int))
+    (pipeline (literal_int))
+    (pipeline (literal_int))
+    (pipeline (literal_int))
+    (pipeline (literal_int))
+    (pipeline (literal_int))
+    (pipeline (literal_int))
+    (pipeline (literal_int))
+    (pipeline (literal_int))
+    (pipeline (literal_int))
+    (pipeline (literal_int))
+    (pipeline (literal_int))
+    (pipeline (literal_int))
+    (pipeline (literal_int))
+    (pipeline (literal_int))
+    (pipeline (literal_int))
+    (pipeline (literal_int))
+    (pipeline (literal_int))
+    (pipeline (literal_int))
+    (pipeline (literal_int))
+    (pipeline (literal_int))
   )
 )
 
@@ -116,7 +115,6 @@ values-float
 -4.2
 -4.2e1
 -4.2E-1
-.42
 4_.
 4_.___2
 4_.2e1
@@ -129,38 +127,35 @@ values-float
 -____4_.2
 -____4_.2e1
 -____4_.2E-1___
-.4_2
 
 -----
 
 (nu_script
-  (pipeline
-    (literal_float)
-    (literal_float)
-    (literal_float)
-    (literal_float)
-    (literal_float)
-    (literal_float)
-    (literal_float)
-    (literal_float)
-    (literal_float)
-    (literal_float)
-    (literal_float)
-    (literal_float)
-    (ERROR)
-    (literal_float)
-    (literal_float)
-    (literal_float)
-    (literal_float)
-    (literal_float)
-    (literal_float)
-    (literal_float)
-    (literal_float)
-    (literal_float)
-    (literal_float)
-    (literal_float)
-    (literal_float)
-    (ERROR)
+  (block
+    (pipeline (literal_float))
+    (pipeline (literal_float))
+    (pipeline (literal_float))
+    (pipeline (literal_float))
+    (pipeline (literal_float))
+    (pipeline (literal_float))
+    (pipeline (literal_float))
+    (pipeline (literal_float))
+    (pipeline (literal_float))
+    (pipeline (literal_float))
+    (pipeline (literal_float))
+    (pipeline (literal_float))
+    (pipeline (literal_float))
+    (pipeline (literal_float))
+    (pipeline (literal_float))
+    (pipeline (literal_float))
+    (pipeline (literal_float))
+    (pipeline (literal_float))
+    (pipeline (literal_float))
+    (pipeline (literal_float))
+    (pipeline (literal_float))
+    (pipeline (literal_float))
+    (pipeline (literal_float))
+    (pipeline (literal_float))
   )
 )
 
@@ -172,15 +167,27 @@ values-binary
 0x[aabb]
 0x[aa bb]
 0x[aa, bb]
+0o[01234567]
+0o[01 23 45 67]
+0o[01, 23, 45, 67]
+0b[011001001]
+0b[01 100 1 001]
+0b[0, 1, 100 1, 001]
 
 -----
 
 (nu_script
-  (pipeline
-    (literal_binary)
-    (literal_binary)
-    (literal_binary)
-    (literal_binary)
+  (block
+    (pipeline (literal_binary))
+    (pipeline (literal_binary))
+    (pipeline (literal_binary))
+    (pipeline (literal_binary))
+    (pipeline (literal_binary))
+    (pipeline (literal_binary))
+    (pipeline (literal_binary))
+    (pipeline (literal_binary))
+    (pipeline (literal_binary))
+    (pipeline (literal_binary))
   )
 )
 
@@ -197,11 +204,11 @@ values-date
 -----
 
 (nu_script
-  (pipeline
-    (literal_date)
-    (literal_date)
-    (literal_date)
-    (literal_date)
-    (literal_date)
+  (block
+    (pipeline (literal_date))
+    (pipeline (literal_date))
+    (pipeline (literal_date))
+    (pipeline (literal_date))
+    (pipeline (literal_date))
   )
 )

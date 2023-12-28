@@ -138,12 +138,25 @@ const FILESIZE_UNIT = [
   "zib", "ziB", "zIB", "zIb", "Zib", "ZIb", "ZIB",
 ]
 
+function _pipeline_rule($, element, extras, terminator) {
+  let pipeline_seq = [];
+
+  if (extras != null) {
+    pipeline_seq.push(extras);
+  }
+
+  pipeline_seq.push(element);
+  pipeline_seq.push(terminator);
+
+  return repeat1(choice(seq(...pipeline_seq), $.line_comment));
+}
+
 module.exports = grammar({
   name: "nu",
 
   word: ($) => $._token,
 
-  extras: ($) => [/ \t/, $._comment],
+  extras: ($) => [/\s/, $.line_comment],
 
   // externals: ($) => [],
 
@@ -156,21 +169,9 @@ module.exports = grammar({
   rules: {
     /// File
 
-    nu_script: ($) =>
-      seq(optional($.shebang), repeat(/\s/), optional($._block_body)),
+    nu_script: ($) => seq(optional($.shebang), optional($._block_body_lf)),
 
     shebang: ($) => seq("#!", /.*\n/),
-
-    /// Identifiers
-
-    // from combination of parser.rs::is_identifier_byte and lex.rs::lex_item {
-    _token: (_) => /[^;#\s\r\n\t]+/,
-    identifier: (_) => /[^.\[\]{}()+\-*^\/\\=!<>&|"'`;#\s\r\n\t]+/,
-
-    /// Comments
-
-    line_comment: ($) => $._comment,
-    _comment: (_) => /#.*\n/,
 
     /*
       pub enum Expr {
@@ -226,24 +227,32 @@ module.exports = grammar({
     */
 
     // [TODO] signature
-    // block: ($) => $._block_body,
 
-    _block_body: ($) => $.pipeline,
+    // Inside a regular block, pipelines should always be terminated by line
+    // feeds or semicolon.
+    _block_body_lf: ($) =>
+      alias(repeat1(seq($.pipeline, $._terminator_lf)), $.block),
 
-    pipeline: ($) =>
-      repeat1(
-        choice(
-          seq(optional($._pipeline_element), $._terminator),
-          $.line_comment,
-        ),
-      ),
+    // Inside the block of a subexpression, there is usually only one pipeline.
+    // Line feeds are ignored to allow ergonomic multi line command invocations,
+    // so if there is more than one, they must be terminated by semicolons.
+    //
+    // A subexpression must return a value, so it cannot end with a pipeline
+    // terminator.
+    _block_body_sub: ($) =>
+      seq($.pipeline, repeat(seq($._terminator_sub, $.pipeline))),
 
-    _pipeline_element: ($) => $._expression,
+    pipeline: ($) => $._pipeline_element,
+
+    _terminator_lf: (_) => /[;\n]/,
+    _terminator_sub: (_) => ";",
+
+    // [TODO]
     // redirection
+    _pipeline_element: ($) => $._expression,
 
-    _terminator: (_) => /[;\n]/,
-
-    _expression: ($) => $._literal,
+    _expression: ($) => choice($._literal, $.subexpression),
+    subexpression: ($) => seq("(", alias($._block_body_sub, $.block), ")"),
 
     _literal: ($) =>
       choice(
@@ -599,5 +608,15 @@ module.exports = grammar({
     //     -69,
     //     token(/[^-$\s\n\t\r{}()\[\]"`';][^\s\n\t\r{}()\[\]"`';]+/),
     //   ),
+
+    /// Identifiers
+
+    // from combination of parser.rs::is_identifier_byte and lex.rs::lex_item {
+    _token: (_) => /[^;#\s\r\n\t]+/,
+    identifier: (_) => /[^.\[\]{}()+\-*^\/\\=!<>&|"'`;#\s\r\n\t]+/,
+
+    /// Comments
+
+    line_comment: (_) => /#.*\n/,
   },
 });
