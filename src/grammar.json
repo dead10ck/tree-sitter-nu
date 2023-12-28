@@ -51,34 +51,6 @@
         }
       ]
     },
-    "_block_body": {
-      "type": "REPEAT1",
-      "content": {
-        "type": "SEQ",
-        "members": [
-          {
-            "type": "CHOICE",
-            "members": [
-              {
-                "type": "SYMBOL",
-                "name": "_expression"
-              },
-              {
-                "type": "SYMBOL",
-                "name": "line_comment"
-              }
-            ]
-          },
-          {
-            "type": "REPEAT",
-            "content": {
-              "type": "STRING",
-              "value": "\n"
-            }
-          }
-        ]
-      }
-    },
     "_token": {
       "type": "PATTERN",
       "value": "[^;#\\s\\r\\n\\t]+"
@@ -86,6 +58,59 @@
     "identifier": {
       "type": "PATTERN",
       "value": "[^.\\[\\]{}()+\\-*^\\/\\\\=!<>&|\"'`;#\\s\\r\\n\\t]+"
+    },
+    "line_comment": {
+      "type": "SYMBOL",
+      "name": "_comment"
+    },
+    "_comment": {
+      "type": "PATTERN",
+      "value": "#.*\\n"
+    },
+    "_block_body": {
+      "type": "SYMBOL",
+      "name": "pipeline"
+    },
+    "pipeline": {
+      "type": "REPEAT1",
+      "content": {
+        "type": "CHOICE",
+        "members": [
+          {
+            "type": "SEQ",
+            "members": [
+              {
+                "type": "CHOICE",
+                "members": [
+                  {
+                    "type": "SYMBOL",
+                    "name": "_pipeline_element"
+                  },
+                  {
+                    "type": "BLANK"
+                  }
+                ]
+              },
+              {
+                "type": "SYMBOL",
+                "name": "_terminator"
+              }
+            ]
+          },
+          {
+            "type": "SYMBOL",
+            "name": "line_comment"
+          }
+        ]
+      }
+    },
+    "_pipeline_element": {
+      "type": "SYMBOL",
+      "name": "_expression"
+    },
+    "_terminator": {
+      "type": "PATTERN",
+      "value": "[;\\n]"
     },
     "_expression": {
       "type": "SYMBOL",
@@ -795,27 +820,16 @@
           }
         ]
       }
-    },
-    "line_comment": {
-      "type": "PREC",
-      "value": 1,
-      "content": {
-        "type": "REPEAT1",
-        "content": {
-          "type": "SYMBOL",
-          "name": "_comment"
-        }
-      }
-    },
-    "_comment": {
-      "type": "PATTERN",
-      "value": "#.*\\n"
     }
   },
   "extras": [
     {
       "type": "PATTERN",
       "value": " \\t"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "_comment"
     }
   ],
   "conflicts": [],

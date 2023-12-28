@@ -11,8 +11,10 @@ line_comment
 -----
 
 (nu_script
-  (line_comment)
-  (line_comment)
-  (line_comment)
-  (line_comment)
+  (pipeline
+    (line_comment)
+    (line_comment)
+    (line_comment)
+    (line_comment)
+  )
 )

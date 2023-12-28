@@ -143,7 +143,7 @@ module.exports = grammar({
 
   word: ($) => $._token,
 
-  extras: ($) => [/ \t/],
+  extras: ($) => [/ \t/, $._comment],
 
   // externals: ($) => [],
 
@@ -161,6 +161,17 @@ module.exports = grammar({
 
     shebang: ($) => seq("#!", /.*\n/),
 
+    /// Identifiers
+
+    // from combination of parser.rs::is_identifier_byte and lex.rs::lex_item {
+    _token: (_) => /[^;#\s\r\n\t]+/,
+    identifier: (_) => /[^.\[\]{}()+\-*^\/\\=!<>&|"'`;#\s\r\n\t]+/,
+
+    /// Comments
+
+    line_comment: ($) => $._comment,
+    _comment: (_) => /#.*\n/,
+
     /*
       pub enum Expr {
           Nothing,
@@ -171,8 +182,8 @@ module.exports = grammar({
           DateTime(chrono::DateTime<FixedOffset>),
           Filepath(String),
           Directory(String),
-          GlobPattern(String),
           String(String),
+          GlobPattern(String),
 
           Range(
               Option<Box<Expression>>, // from
@@ -214,16 +225,23 @@ module.exports = grammar({
       }
     */
 
-    _block_body: ($) =>
-      repeat1(seq(choice($._expression, $.line_comment), repeat("\n"))),
+    // [TODO] signature
+    // block: ($) => $._block_body,
 
-    /// Identifiers
+    _block_body: ($) => $.pipeline,
 
-    // from combination of parser.rs::is_identifier_byte and lex.rs::lex_item {
-    _token: (_) => /[^;#\s\r\n\t]+/,
-    identifier: (_) => /[^.\[\]{}()+\-*^\/\\=!<>&|"'`;#\s\r\n\t]+/,
+    pipeline: ($) =>
+      repeat1(
+        choice(
+          seq(optional($._pipeline_element), $._terminator),
+          $.line_comment,
+        ),
+      ),
 
-    // _terminator: ($) => choice(PUNC().semicolon, "\n"),
+    _pipeline_element: ($) => $._expression,
+    // redirection
+
+    _terminator: (_) => /[;\n]/,
 
     _expression: ($) => $._literal,
 
@@ -581,10 +599,5 @@ module.exports = grammar({
     //     -69,
     //     token(/[^-$\s\n\t\r{}()\[\]"`';][^\s\n\t\r{}()\[\]"`';]+/),
     //   ),
-
-    /// Comments
-
-    line_comment: ($) => prec(1, repeat1($._comment)),
-    _comment: (_) => /#.*\n/,
   },
 });

@@ -23,6 +23,25 @@
       "required": false,
       "types": [
         {
+          "type": "pipeline",
+          "named": true
+        },
+        {
+          "type": "shebang",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "pipeline",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
           "type": "line_comment",
           "named": true
         },
@@ -49,10 +68,6 @@
         {
           "type": "literal_null",
           "named": true
-        },
-        {
-          "type": "shebang",
-          "named": true
         }
       ]
     }
@@ -61,10 +76,6 @@
     "type": "shebang",
     "named": true,
     "fields": {}
-  },
-  {
-    "type": "\n",
-    "named": false
   },
   {
     "type": "#!",

@@ -7,7 +7,9 @@ null
 -----
 
 (nu_script
-  (literal_null)
+  (pipeline
+    (literal_null)
+  )
 )
 
 =====
@@ -20,8 +22,10 @@ false
 -----
 
 (nu_script
-  (literal_bool)
-  (literal_bool)
+  (pipeline
+    (literal_bool)
+    (literal_bool)
+  )
 )
 
 =====
@@ -62,36 +66,38 @@ ___4___2___
 -----
 
 (nu_script
-  (literal_int)
-  (literal_int)
-  (literal_int)
-  (literal_int)
-  (literal_int)
-  (literal_int)
-  (literal_int)
-  (literal_int)
-  (literal_int)
-  (literal_int)
-  (literal_int)
-  (literal_int)
-  (literal_int)
-  (literal_int)
-  (literal_int)
-  (literal_int)
-  (literal_int)
-  (literal_int)
-  (literal_int)
-  (literal_int)
-  (literal_int)
-  (literal_int)
-  (literal_int)
-  (literal_int)
-  (literal_int)
-  (literal_int)
-  (literal_int)
-  (literal_int)
-  (literal_int)
-  (literal_int)
+  (pipeline
+    (literal_int)
+    (literal_int)
+    (literal_int)
+    (literal_int)
+    (literal_int)
+    (literal_int)
+    (literal_int)
+    (literal_int)
+    (literal_int)
+    (literal_int)
+    (literal_int)
+    (literal_int)
+    (literal_int)
+    (literal_int)
+    (literal_int)
+    (literal_int)
+    (literal_int)
+    (literal_int)
+    (literal_int)
+    (literal_int)
+    (literal_int)
+    (literal_int)
+    (literal_int)
+    (literal_int)
+    (literal_int)
+    (literal_int)
+    (literal_int)
+    (literal_int)
+    (literal_int)
+    (literal_int)
+  )
 )
 
 =====
@@ -128,32 +134,34 @@ values-float
 -----
 
 (nu_script
-  (literal_float)
-  (literal_float)
-  (literal_float)
-  (literal_float)
-  (literal_float)
-  (literal_float)
-  (literal_float)
-  (literal_float)
-  (literal_float)
-  (literal_float)
-  (literal_float)
-  (literal_float)
-  (ERROR)
-  (literal_float)
-  (literal_float)
-  (literal_float)
-  (literal_float)
-  (literal_float)
-  (literal_float)
-  (literal_float)
-  (literal_float)
-  (literal_float)
-  (literal_float)
-  (literal_float)
-  (literal_float)
-  (ERROR)
+  (pipeline
+    (literal_float)
+    (literal_float)
+    (literal_float)
+    (literal_float)
+    (literal_float)
+    (literal_float)
+    (literal_float)
+    (literal_float)
+    (literal_float)
+    (literal_float)
+    (literal_float)
+    (literal_float)
+    (ERROR)
+    (literal_float)
+    (literal_float)
+    (literal_float)
+    (literal_float)
+    (literal_float)
+    (literal_float)
+    (literal_float)
+    (literal_float)
+    (literal_float)
+    (literal_float)
+    (literal_float)
+    (literal_float)
+    (ERROR)
+  )
 )
 
 =====
@@ -168,10 +176,12 @@ values-binary
 -----
 
 (nu_script
-  (literal_binary)
-  (literal_binary)
-  (literal_binary)
-  (literal_binary)
+  (pipeline
+    (literal_binary)
+    (literal_binary)
+    (literal_binary)
+    (literal_binary)
+  )
 )
 
 =====
@@ -187,9 +197,11 @@ values-date
 -----
 
 (nu_script
-  (literal_date)
-  (literal_date)
-  (literal_date)
-  (literal_date)
-  (literal_date)
+  (pipeline
+    (literal_date)
+    (literal_date)
+    (literal_date)
+    (literal_date)
+    (literal_date)
+  )
 )
