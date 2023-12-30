@@ -335,7 +335,12 @@ module.exports = grammar({
       ),
 
     string: ($) =>
-      choice($._str_single_quotes, $._str_back_ticks, $._str_double_quotes),
+      choice(
+        $._str_single_quotes,
+        $._str_back_ticks,
+        $._str_double_quotes,
+        $._str_interpolation,
+      ),
 
     _str_single_quotes: ($) => /'[^']*'/,
 
@@ -344,7 +349,21 @@ module.exports = grammar({
     _str_double_quotes: ($) =>
       seq('"', repeat(choice($._str_content, $.escape_sequence)), '"'),
 
+    _str_interpolation: ($) =>
+      seq(
+        '$"',
+        repeat(
+          choice(
+            $._str_interpolation_content,
+            $.escape_sequence,
+            $.subexpression,
+          ),
+        ),
+        '"',
+      ),
+
     _str_content: ($) => token.immediate(/[^"\\]+/),
+    _str_interpolation_content: ($) => token.immediate(/[^"\\(]+/),
 
     escape_sequence: ($) =>
       token.immediate(

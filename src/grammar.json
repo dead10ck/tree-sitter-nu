@@ -864,6 +864,10 @@
         {
           "type": "SYMBOL",
           "name": "_str_double_quotes"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "_str_interpolation"
         }
       ]
     },
@@ -904,11 +908,51 @@
         }
       ]
     },
+    "_str_interpolation": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "$\""
+        },
+        {
+          "type": "REPEAT",
+          "content": {
+            "type": "CHOICE",
+            "members": [
+              {
+                "type": "SYMBOL",
+                "name": "_str_interpolation_content"
+              },
+              {
+                "type": "SYMBOL",
+                "name": "escape_sequence"
+              },
+              {
+                "type": "SYMBOL",
+                "name": "subexpression"
+              }
+            ]
+          }
+        },
+        {
+          "type": "STRING",
+          "value": "\""
+        }
+      ]
+    },
     "_str_content": {
       "type": "IMMEDIATE_TOKEN",
       "content": {
         "type": "PATTERN",
         "value": "[^\"\\\\]+"
+      }
+    },
+    "_str_interpolation_content": {
+      "type": "IMMEDIATE_TOKEN",
+      "content": {
+        "type": "PATTERN",
+        "value": "[^\"\\\\(]+"
       }
     },
     "escape_sequence": {

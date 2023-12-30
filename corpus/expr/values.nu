@@ -27,6 +27,7 @@ false
     (pipeline (literal_bool))
   )
 )
+
 =====
 values-int
 =====
@@ -253,6 +254,37 @@ values-string-plain
         (escape_sequence)
         (escape_sequence)
         (escape_sequence)
+      )
+    )
+  )
+)
+
+=====
+values-string-interpolation
+=====
+
+"double quoted string with (0) ('interpolation')s"
+$"double quoted string with an\"\'escape sequence and (2) ("interpolation")s"
+
+-----
+
+(nu_script
+  (block
+    (pipeline (string))
+    (pipeline
+      (string
+        (escape_sequence)
+        (escape_sequence)
+        (subexpression
+          (block
+            (pipeline (literal_int))
+          )
+        )
+        (subexpression
+          (block
+            (pipeline (string))
+          )
+        )
       )
     )
   )

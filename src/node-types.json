@@ -102,6 +102,10 @@
         {
           "type": "escape_sequence",
           "named": true
+        },
+        {
+          "type": "subexpression",
+          "named": true
         }
       ]
     }
@@ -127,6 +131,10 @@
   },
   {
     "type": "#!",
+    "named": false
+  },
+  {
+    "type": "$\"",
     "named": false
   },
   {
