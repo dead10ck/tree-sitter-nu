@@ -212,3 +212,48 @@ values-date
     (pipeline (literal_date))
   )
 )
+
+=====
+values-string-plain
+=====
+
+'this is a string @#$_&-+'
+`this is a string with a multi code point emoji 👩‍👩‍👦‍👦`
+"double quoted string with an\"\'\\\/\{\}\(\)\$\^\#\|\~\a\b\e\f\n\r\t\u{00}\u{eee}\u{ffff}\u{10ffff}escape sequence"
+
+-----
+
+(nu_script
+  (block
+    (pipeline (string))
+    (pipeline (string))
+    (pipeline
+      (string
+        (escape_sequence)
+        (escape_sequence)
+        (escape_sequence)
+        (escape_sequence)
+        (escape_sequence)
+        (escape_sequence)
+        (escape_sequence)
+        (escape_sequence)
+        (escape_sequence)
+        (escape_sequence)
+        (escape_sequence)
+        (escape_sequence)
+        (escape_sequence)
+        (escape_sequence)
+        (escape_sequence)
+        (escape_sequence)
+        (escape_sequence)
+        (escape_sequence)
+        (escape_sequence)
+        (escape_sequence)
+        (escape_sequence)
+        (escape_sequence)
+        (escape_sequence)
+        (escape_sequence)
+      )
+    )
+  )
+)

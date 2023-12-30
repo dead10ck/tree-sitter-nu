@@ -251,7 +251,7 @@ module.exports = grammar({
     // redirection
     _pipeline_element: ($) => $._expression,
 
-    _expression: ($) => choice($._literal, $.subexpression),
+    _expression: ($) => choice($._literal, $.string, $.subexpression),
     subexpression: ($) => seq("(", alias($._block_body_sub, $.block), ")"),
 
     _literal: ($) =>
@@ -331,6 +331,28 @@ module.exports = grammar({
         choice(
           /[0-9]+-[0-9]{2}-[0-9]{2}/,
           /[0-9]+-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?([Zz]|([-+])([01]\d|2[0-3]):?([0-5]\d)?)?/,
+        ),
+      ),
+
+    string: ($) =>
+      choice($._str_single_quotes, $._str_back_ticks, $._str_double_quotes),
+
+    _str_single_quotes: ($) => /'[^']*'/,
+
+    _str_back_ticks: ($) => /`[^`]*`/,
+
+    _str_double_quotes: ($) =>
+      seq('"', repeat(choice($._str_content, $.escape_sequence)), '"'),
+
+    _str_content: ($) => token.immediate(/[^"\\]+/),
+
+    escape_sequence: ($) =>
+      token.immediate(
+        seq(
+          "\\",
+          token.immediate(
+            choice(/["'\\\/{}()$^#|~abefnrt]/, /u[{][0-9a-fA-F]+[}]/),
+          ),
         ),
       ),
 

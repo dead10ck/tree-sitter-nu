@@ -115,6 +115,10 @@
         },
         {
           "type": "SYMBOL",
+          "name": "string"
+        },
+        {
+          "type": "SYMBOL",
           "name": "subexpression"
         }
       ]
@@ -842,6 +846,95 @@
           {
             "type": "PATTERN",
             "value": "[0-9]+-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]+)?([Zz]|([-+])([01]\\d|2[0-3]):?([0-5]\\d)?)?"
+          }
+        ]
+      }
+    },
+    "string": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "_str_single_quotes"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "_str_back_ticks"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "_str_double_quotes"
+        }
+      ]
+    },
+    "_str_single_quotes": {
+      "type": "PATTERN",
+      "value": "'[^']*'"
+    },
+    "_str_back_ticks": {
+      "type": "PATTERN",
+      "value": "`[^`]*`"
+    },
+    "_str_double_quotes": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "\""
+        },
+        {
+          "type": "REPEAT",
+          "content": {
+            "type": "CHOICE",
+            "members": [
+              {
+                "type": "SYMBOL",
+                "name": "_str_content"
+              },
+              {
+                "type": "SYMBOL",
+                "name": "escape_sequence"
+              }
+            ]
+          }
+        },
+        {
+          "type": "STRING",
+          "value": "\""
+        }
+      ]
+    },
+    "_str_content": {
+      "type": "IMMEDIATE_TOKEN",
+      "content": {
+        "type": "PATTERN",
+        "value": "[^\"\\\\]+"
+      }
+    },
+    "escape_sequence": {
+      "type": "IMMEDIATE_TOKEN",
+      "content": {
+        "type": "SEQ",
+        "members": [
+          {
+            "type": "STRING",
+            "value": "\\"
+          },
+          {
+            "type": "IMMEDIATE_TOKEN",
+            "content": {
+              "type": "CHOICE",
+              "members": [
+                {
+                  "type": "PATTERN",
+                  "value": "[\"'\\\\\\/{}()$^#|~abefnrt]"
+                },
+                {
+                  "type": "PATTERN",
+                  "value": "u[{][0-9a-fA-F]+[}]"
+                }
+              ]
+            }
           }
         ]
       }
