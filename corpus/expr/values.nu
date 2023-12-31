@@ -175,10 +175,24 @@ values-binary
 0b[01 100 1 001]
 0b[0, 1, 100 1, 001]
 
+0b[,,,,,,0,
+  1,
+  100 1,
+  001
+]
+
+0b[
+0,
+  1
+  100 1,,,
+  001 ]
+
 -----
 
 (nu_script
   (block
+    (pipeline (literal_binary))
+    (pipeline (literal_binary))
     (pipeline (literal_binary))
     (pipeline (literal_binary))
     (pipeline (literal_binary))

@@ -25,8 +25,9 @@ const _FLOAT_EXPONENT = token(seq(/[eE]/, optional(_SIGN), _LITERAL_DECIMAL));
 
 function _binary_rule(prefix, digit) {
   return seq(
-    prefix + "[",
-    field("bytes", token(repeat(seq(digit, /[ ]*,?[ ]*/)))),
+    prefix,
+    token.immediate("["),
+    repeat(choice(token(seq(digit, repeat(token.immediate(digit)))), ",")),
     "]",
   );
 }
@@ -321,9 +322,9 @@ module.exports = grammar({
 
     literal_binary: (_) =>
       choice(
-        _binary_rule("0x", repeat1(_DIGIT_HEX)),
-        _binary_rule("0o", repeat1(_DIGIT_OCTAL)),
-        _binary_rule("0b", repeat1(_DIGIT_BINARY)),
+        _binary_rule("0x", _DIGIT_HEX),
+        _binary_rule("0o", _DIGIT_OCTAL),
+        _binary_rule("0b", _DIGIT_BINARY),
       ),
 
     literal_date: (_) =>
@@ -468,8 +469,6 @@ module.exports = grammar({
 
     /// Simple Expressions
 
-    // range??
-    //
     // value: ($) =>
     //   choice(
     //     $.val_variable,
@@ -497,89 +496,10 @@ module.exports = grammar({
     //     field("name", choice("nu", "in", "env", "nothing", $.identifier)),
     //   ),
 
-    // separating floats from integers does not end well
-    // especially when it comes to incorporation with ranges.
-    // val_number: ($) =>
-    //   choice(
-    //     /[+-]?([0-9]+[.])?[0-9]+([eE][-+]?\d+)?/,
-    //     /0x[0-9a-fA-F_]+/,
-    //     /0b[01_]+/,
-    //     /0o[0-7_]+/,
-    //     SPECIAL().pos_infinity,
-    //     SPECIAL().neg_infinity,
-    //     SPECIAL().not_a_number,
-    //   ),
-
     // val_duration: ($) =>
 
     // val_filesize: ($) =>
     // seq(field("value", $.val_number), field("unit", FILESIZE_UNIT())),
-
-    // val_binary: ($) =>
-    //   seq(
-    //     choice("0b", "0o", "0x"),
-    //     token.immediate(BRACK().open_brack),
-    //     repeat(field("digit", seq($.hex_digit, optional(PUNC().comma)))),
-    //     BRACK().close_brack,
-    //   ),
-
-    // val_date: ($) =>
-    //   token(
-    //     choice(
-    //       /[0-9]{4}-[0-9]{2}-[0-9]{2}/i,
-    //       /[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?([Zz]|([\+-])([01]\d|2[0-3]):?([0-5]\d)?)?/,
-    //     ),
-    //   ),
-
-    // val_string: ($) =>
-
-    // _str_double_quotes: ($) =>
-    //   seq(
-    //     '"',
-    //     repeat(
-    //       choice(
-    //         $._escaped_str_content,
-    //         // double quoted strings accept escapes
-    //         $.escape_sequence,
-    //       ),
-    //     ),
-    //     '"',
-    //   ),
-
-    // _escaped_str_content: ($) => token.immediate(prec(1, /[^"\\]+/)),
-
-    // _str_single_quotes: ($) => /'[^']*'/,
-
-    // _str_back_ticks: ($) => /`[^`]*`/,
-
-    // escape_sequence: ($) =>
-    //   token.immediate(
-    //     seq(
-    //       "\\",
-    //       choice(
-    //         /[^xu]/,
-    //         /u[0-9a-fA-F]{4}/,
-    //         /u{[0-9a-fA-F]+}/,
-    //         /x[0-9a-fA-F]{2}/,
-    //       ),
-    //     ),
-    //   ),
-
-    /// String Interpolation
-
-    // inter_escape_sequence: ($) =>
-    //   token.immediate(
-    //     seq(
-    //       "\\",
-    //       choice(
-    //         /[^xu]/,
-    //         /u[0-9a-fA-F]{4}/,
-    //         /u{[0-9a-fA-F]+}/,
-    //         /x[0-9a-fA-F]{2}/,
-    //         "(",
-    //       ),
-    //     ),
-    //   ),
 
     /// Collections
 

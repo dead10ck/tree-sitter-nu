@@ -720,32 +720,47 @@
           "members": [
             {
               "type": "STRING",
-              "value": "0x["
+              "value": "0x"
             },
             {
-              "type": "FIELD",
-              "name": "bytes",
+              "type": "IMMEDIATE_TOKEN",
               "content": {
-                "type": "TOKEN",
-                "content": {
-                  "type": "REPEAT",
-                  "content": {
-                    "type": "SEQ",
-                    "members": [
-                      {
-                        "type": "REPEAT1",
-                        "content": {
+                "type": "STRING",
+                "value": "["
+              }
+            },
+            {
+              "type": "REPEAT",
+              "content": {
+                "type": "CHOICE",
+                "members": [
+                  {
+                    "type": "TOKEN",
+                    "content": {
+                      "type": "SEQ",
+                      "members": [
+                        {
                           "type": "PATTERN",
                           "value": "[0-9a-fA-F]"
+                        },
+                        {
+                          "type": "REPEAT",
+                          "content": {
+                            "type": "IMMEDIATE_TOKEN",
+                            "content": {
+                              "type": "PATTERN",
+                              "value": "[0-9a-fA-F]"
+                            }
+                          }
                         }
-                      },
-                      {
-                        "type": "PATTERN",
-                        "value": "[ ]*,?[ ]*"
-                      }
-                    ]
+                      ]
+                    }
+                  },
+                  {
+                    "type": "STRING",
+                    "value": ","
                   }
-                }
+                ]
               }
             },
             {
@@ -759,32 +774,47 @@
           "members": [
             {
               "type": "STRING",
-              "value": "0o["
+              "value": "0o"
             },
             {
-              "type": "FIELD",
-              "name": "bytes",
+              "type": "IMMEDIATE_TOKEN",
               "content": {
-                "type": "TOKEN",
-                "content": {
-                  "type": "REPEAT",
-                  "content": {
-                    "type": "SEQ",
-                    "members": [
-                      {
-                        "type": "REPEAT1",
-                        "content": {
+                "type": "STRING",
+                "value": "["
+              }
+            },
+            {
+              "type": "REPEAT",
+              "content": {
+                "type": "CHOICE",
+                "members": [
+                  {
+                    "type": "TOKEN",
+                    "content": {
+                      "type": "SEQ",
+                      "members": [
+                        {
                           "type": "PATTERN",
                           "value": "[0-7]"
+                        },
+                        {
+                          "type": "REPEAT",
+                          "content": {
+                            "type": "IMMEDIATE_TOKEN",
+                            "content": {
+                              "type": "PATTERN",
+                              "value": "[0-7]"
+                            }
+                          }
                         }
-                      },
-                      {
-                        "type": "PATTERN",
-                        "value": "[ ]*,?[ ]*"
-                      }
-                    ]
+                      ]
+                    }
+                  },
+                  {
+                    "type": "STRING",
+                    "value": ","
                   }
-                }
+                ]
               }
             },
             {
@@ -798,32 +828,47 @@
           "members": [
             {
               "type": "STRING",
-              "value": "0b["
+              "value": "0b"
             },
             {
-              "type": "FIELD",
-              "name": "bytes",
+              "type": "IMMEDIATE_TOKEN",
               "content": {
-                "type": "TOKEN",
-                "content": {
-                  "type": "REPEAT",
-                  "content": {
-                    "type": "SEQ",
-                    "members": [
-                      {
-                        "type": "REPEAT1",
-                        "content": {
+                "type": "STRING",
+                "value": "["
+              }
+            },
+            {
+              "type": "REPEAT",
+              "content": {
+                "type": "CHOICE",
+                "members": [
+                  {
+                    "type": "TOKEN",
+                    "content": {
+                      "type": "SEQ",
+                      "members": [
+                        {
                           "type": "PATTERN",
                           "value": "[01]"
+                        },
+                        {
+                          "type": "REPEAT",
+                          "content": {
+                            "type": "IMMEDIATE_TOKEN",
+                            "content": {
+                              "type": "PATTERN",
+                              "value": "[01]"
+                            }
+                          }
                         }
-                      },
-                      {
-                        "type": "PATTERN",
-                        "value": "[ ]*,?[ ]*"
-                      }
-                    ]
+                      ]
+                    }
+                  },
+                  {
+                    "type": "STRING",
+                    "value": ","
                   }
-                }
+                ]
               }
             },
             {

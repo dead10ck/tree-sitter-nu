@@ -146,15 +146,23 @@
     "named": false
   },
   {
-    "type": "0b[",
+    "type": ",",
     "named": false
   },
   {
-    "type": "0o[",
+    "type": "0b",
     "named": false
   },
   {
-    "type": "0x[",
+    "type": "0o",
+    "named": false
+  },
+  {
+    "type": "0x",
+    "named": false
+  },
+  {
+    "type": "[",
     "named": false
   },
   {
