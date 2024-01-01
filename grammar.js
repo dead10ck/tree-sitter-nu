@@ -5,29 +5,33 @@ const _DIGIT_HEX = /[0-9a-fA-F]/;
 const _DIGIT_OCTAL = /[0-7]/;
 const _DIGIT_BINARY = /[01]/;
 
-const _LITERAL_DECIMAL = token(
-  seq(/_*/, _DIGIT_DECIMAL, repeat(choice("_", _DIGIT_DECIMAL))),
-);
+function _literal_number_rule(digit) {
+  return token(
+    seq(
+      /_*/,
+      token.immediate(digit),
+      token.immediate(repeat(token.immediate(choice("_", digit)))),
+    ),
+  );
+}
 
-const _LITERAL_HEX = token(
-  seq(/_*/, _DIGIT_HEX, repeat(choice("_", _DIGIT_HEX))),
-);
+const _LITERAL_DECIMAL = _literal_number_rule(_DIGIT_DECIMAL);
+const _LITERAL_HEX = _literal_number_rule(_DIGIT_HEX);
+const _LITERAL_OCTAL = _literal_number_rule(_DIGIT_OCTAL);
+const _LITERAL_BINARY = _literal_number_rule(_DIGIT_BINARY);
 
-const _LITERAL_OCTAL = token(
-  seq(/_*/, _DIGIT_OCTAL, repeat(choice("_", _DIGIT_OCTAL))),
+const _FLOAT_EXPONENT = token(
+  seq(
+    /[eE]/,
+    optional(token.immediate(_SIGN)),
+    token.immediate(_LITERAL_DECIMAL),
+  ),
 );
-
-const _LITERAL_BINARY = token(
-  seq(/_*/, _DIGIT_BINARY, repeat(choice("_", _DIGIT_BINARY))),
-);
-
-const _FLOAT_EXPONENT = token(seq(/[eE]/, optional(_SIGN), _LITERAL_DECIMAL));
 
 function _binary_rule(prefix, digit) {
   return seq(
-    prefix,
-    token.immediate("["),
-    repeat(choice(token(seq(digit, repeat(token.immediate(digit)))), ",")),
+    token(prefix + "["),
+    repeat(choice(token(repeat1(digit)), ",")),
     "]",
   );
 }
@@ -245,14 +249,14 @@ module.exports = grammar({
 
     pipeline: ($) => $._pipeline_element,
 
-    _terminator_lf: (_) => /[;\n]/,
-    _terminator_sub: (_) => ";",
+    _terminator_lf: (_) => token(prec(10, /[;\n]/)),
+    _terminator_sub: (_) => token(prec(10, ";")),
 
     // [TODO]
     // redirection
     _pipeline_element: ($) => $._expression,
 
-    _expression: ($) => choice($._literal, $.string, $.subexpression),
+    _expression: ($) => choice($.range, $._literal, $.string, $.subexpression),
     subexpression: ($) => seq("(", alias($._block_body_sub, $.block), ")"),
 
     _literal: ($) =>
@@ -275,15 +279,26 @@ module.exports = grammar({
     // also, we cannot use standalone rules for individual digits to avoid the
     // repetition because they all have to be parsed as a single token to avoid
     // conflicts, and you cannot use the token() function on a non-terminal rule
-    //
-    // yes, as of this writing, the sign can come *after* the radix prefix
-    literal_int: (_) =>
-      token(
-        choice(
-          seq(optional(_SIGN), _LITERAL_DECIMAL),
-          seq("0x", optional(_SIGN), _LITERAL_HEX),
-          seq("0o", optional(_SIGN), _LITERAL_OCTAL),
-          seq("0b", optional(_SIGN), _LITERAL_BINARY),
+    literal_int: ($) =>
+      choice(
+        _LITERAL_DECIMAL,
+        seq(_SIGN, token.immediate(_LITERAL_DECIMAL)),
+
+        // yes, as of this writing, the sign can come *after* the radix prefix
+        seq(
+          "0x",
+          optional(token.immediate(_SIGN)),
+          token.immediate(_LITERAL_HEX),
+        ),
+        seq(
+          "0o",
+          optional(token.immediate(_SIGN)),
+          token.immediate(_LITERAL_OCTAL),
+        ),
+        seq(
+          "0b",
+          optional(token.immediate(_SIGN)),
+          token.immediate(_LITERAL_BINARY),
         ),
       ),
 
@@ -299,25 +314,47 @@ module.exports = grammar({
     //
     // FLOAT_EXPONENT :
     //    (e|E) (+|-)? (DEC_DIGIT|_)* DEC_DIGIT (DEC_DIGIT|_)*
-    literal_float: ($) =>
-      token(
+    literal_float: ($) => choice($._float_short, $._float_complete),
+
+    _float_complete: (_) =>
+      choice(
         seq(
-          optional(_SIGN),
+          _SIGN,
           choice(
-            /inf|nan/i,
-            seq(_LITERAL_DECIMAL, _FLOAT_EXPONENT),
-            prec(
-              1,
-              seq(
-                _LITERAL_DECIMAL,
-                ".",
-                _LITERAL_DECIMAL,
-                optional(_FLOAT_EXPONENT),
-              ),
+            token.immediate(/inf|nan/i),
+
+            seq(
+              token.immediate(_LITERAL_DECIMAL),
+              token.immediate(_FLOAT_EXPONENT),
             ),
-            seq(_LITERAL_DECIMAL, "."),
+
+            seq(
+              token.immediate(_LITERAL_DECIMAL),
+              token.immediate("."),
+              token.immediate(_LITERAL_DECIMAL),
+              optional(token.immediate(_FLOAT_EXPONENT)),
+            ),
           ),
         ),
+        // must duplicate the rule without the sign instead of a simple optional
+        // because if it's missing, then the first token can't be immediate, but
+        // if it is, then the next token must be immediate
+        choice(
+          /inf|nan/i,
+          seq(_LITERAL_DECIMAL, token.immediate(_FLOAT_EXPONENT)),
+          seq(
+            _LITERAL_DECIMAL,
+            token.immediate("."),
+            token.immediate(_LITERAL_DECIMAL),
+            optional(token.immediate(_FLOAT_EXPONENT)),
+          ),
+        ),
+      ),
+
+    _float_short: (_) =>
+      choice(
+        seq(_SIGN, token.immediate(_LITERAL_DECIMAL), token.immediate(".")),
+        seq(_LITERAL_DECIMAL, token.immediate(".")),
       ),
 
     literal_binary: (_) =>
@@ -374,6 +411,33 @@ module.exports = grammar({
             choice(/["'\\\/{}()$^#|~abefnrt]/, /u[{][0-9a-fA-F]+[}]/),
           ),
         ),
+      ),
+
+    range: ($) =>
+      seq(
+        field("from", $._range_element_left),
+        optional(
+          seq(token.immediate(".."), field("next", $._range_element_left)),
+        ),
+        field("op", token.immediate(choice("..", "..=", "..<"))),
+        field("to", $._range_element_right),
+      ),
+
+    // [TODO] or variable
+    _range_element_left: ($) =>
+      choice(
+        $.literal_int,
+        // `<num> . ..` is ambiguous, so only allow float syntaxes that don't end with a .
+        alias($._float_complete, $.literal_float),
+        $.subexpression,
+      ),
+
+    _range_element_right: ($) =>
+      choice(
+        $.literal_int,
+        // `.. <num> .` is not ambiguous, so it is allowed
+        $.literal_float,
+        $.subexpression,
       ),
 
     /// Controls

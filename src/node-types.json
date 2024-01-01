@@ -25,6 +25,16 @@
     "fields": {}
   },
   {
+    "type": "literal_float",
+    "named": true,
+    "fields": {}
+  },
+  {
+    "type": "literal_int",
+    "named": true,
+    "fields": {}
+  },
+  {
     "type": "nu_script",
     "named": true,
     "fields": {},
@@ -76,6 +86,10 @@
           "named": true
         },
         {
+          "type": "range",
+          "named": true
+        },
+        {
           "type": "string",
           "named": true
         },
@@ -84,6 +98,66 @@
           "named": true
         }
       ]
+    }
+  },
+  {
+    "type": "range",
+    "named": true,
+    "fields": {
+      "from": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "literal_float",
+            "named": true
+          },
+          {
+            "type": "literal_int",
+            "named": true
+          },
+          {
+            "type": "subexpression",
+            "named": true
+          }
+        ]
+      },
+      "next": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "literal_float",
+            "named": true
+          },
+          {
+            "type": "literal_int",
+            "named": true
+          },
+          {
+            "type": "subexpression",
+            "named": true
+          }
+        ]
+      },
+      "to": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "literal_float",
+            "named": true
+          },
+          {
+            "type": "literal_int",
+            "named": true
+          },
+          {
+            "type": "subexpression",
+            "named": true
+          }
+        ]
+      }
     }
   },
   {
@@ -150,7 +224,19 @@
     "named": false
   },
   {
+    "type": ".",
+    "named": false
+  },
+  {
+    "type": "..",
+    "named": false
+  },
+  {
     "type": "0b",
+    "named": false
+  },
+  {
+    "type": "0b[",
     "named": false
   },
   {
@@ -158,11 +244,15 @@
     "named": false
   },
   {
+    "type": "0o[",
+    "named": false
+  },
+  {
     "type": "0x",
     "named": false
   },
   {
-    "type": "[",
+    "type": "0x[",
     "named": false
   },
   {
@@ -183,14 +273,6 @@
   },
   {
     "type": "literal_date",
-    "named": true
-  },
-  {
-    "type": "literal_float",
-    "named": true
-  },
-  {
-    "type": "literal_int",
     "named": true
   },
   {
