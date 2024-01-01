@@ -5,7 +5,7 @@
     "fields": {},
     "children": {
       "multiple": true,
-      "required": true,
+      "required": false,
       "types": [
         {
           "type": "pipeline",
@@ -25,12 +25,22 @@
     "fields": {}
   },
   {
+    "type": "literal_float",
+    "named": true,
+    "fields": {}
+  },
+  {
+    "type": "literal_int",
+    "named": true,
+    "fields": {}
+  },
+  {
     "type": "nu_script",
     "named": true,
     "fields": {},
     "children": {
       "multiple": true,
-      "required": false,
+      "required": true,
       "types": [
         {
           "type": "block",
@@ -76,6 +86,10 @@
           "named": true
         },
         {
+          "type": "range",
+          "named": true
+        },
+        {
           "type": "string",
           "named": true
         },
@@ -85,6 +99,85 @@
         }
       ]
     }
+  },
+  {
+    "type": "range",
+    "named": true,
+    "fields": {
+      "from": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "literal_float",
+            "named": true
+          },
+          {
+            "type": "literal_int",
+            "named": true
+          },
+          {
+            "type": "subexpression",
+            "named": true
+          }
+        ]
+      },
+      "next": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "literal_float",
+            "named": true
+          },
+          {
+            "type": "literal_int",
+            "named": true
+          },
+          {
+            "type": "subexpression",
+            "named": true
+          }
+        ]
+      },
+      "op": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "range_op_inclusive",
+            "named": true
+          },
+          {
+            "type": "range_op_right_exclusive",
+            "named": true
+          }
+        ]
+      },
+      "to": {
+        "multiple": true,
+        "required": true,
+        "types": [
+          {
+            "type": "literal_float",
+            "named": true
+          },
+          {
+            "type": "literal_int",
+            "named": true
+          },
+          {
+            "type": "subexpression",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "range_op_inclusive",
+    "named": true,
+    "fields": {}
   },
   {
     "type": "shebang",
@@ -150,7 +243,19 @@
     "named": false
   },
   {
+    "type": ".",
+    "named": false
+  },
+  {
+    "type": "..",
+    "named": false
+  },
+  {
     "type": "0b",
+    "named": false
+  },
+  {
+    "type": "0b[",
     "named": false
   },
   {
@@ -158,11 +263,23 @@
     "named": false
   },
   {
+    "type": "0o[",
+    "named": false
+  },
+  {
     "type": "0x",
     "named": false
   },
   {
-    "type": "[",
+    "type": "0x[",
+    "named": false
+  },
+  {
+    "type": ";",
+    "named": false
+  },
+  {
+    "type": "=",
     "named": false
   },
   {
@@ -186,15 +303,11 @@
     "named": true
   },
   {
-    "type": "literal_float",
-    "named": true
-  },
-  {
-    "type": "literal_int",
-    "named": true
-  },
-  {
     "type": "literal_null",
+    "named": true
+  },
+  {
+    "type": "range_op_right_exclusive",
     "named": true
   },
   {

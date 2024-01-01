@@ -5,29 +5,21 @@ const _DIGIT_HEX = /[0-9a-fA-F]/;
 const _DIGIT_OCTAL = /[0-7]/;
 const _DIGIT_BINARY = /[01]/;
 
-const _LITERAL_DECIMAL = token(
-  seq(/_*/, _DIGIT_DECIMAL, repeat(choice("_", _DIGIT_DECIMAL))),
-);
+function _literal_number_rule(digit) {
+  return token(seq(/_*/, digit, repeat(choice("_", digit))));
+}
 
-const _LITERAL_HEX = token(
-  seq(/_*/, _DIGIT_HEX, repeat(choice("_", _DIGIT_HEX))),
-);
-
-const _LITERAL_OCTAL = token(
-  seq(/_*/, _DIGIT_OCTAL, repeat(choice("_", _DIGIT_OCTAL))),
-);
-
-const _LITERAL_BINARY = token(
-  seq(/_*/, _DIGIT_BINARY, repeat(choice("_", _DIGIT_BINARY))),
-);
+const _LITERAL_DECIMAL = _literal_number_rule(_DIGIT_DECIMAL);
+const _LITERAL_HEX = _literal_number_rule(_DIGIT_HEX);
+const _LITERAL_OCTAL = _literal_number_rule(_DIGIT_OCTAL);
+const _LITERAL_BINARY = _literal_number_rule(_DIGIT_BINARY);
 
 const _FLOAT_EXPONENT = token(seq(/[eE]/, optional(_SIGN), _LITERAL_DECIMAL));
 
 function _binary_rule(prefix, digit) {
   return seq(
-    prefix,
-    token.immediate("["),
-    repeat(choice(token(seq(digit, repeat(token.immediate(digit)))), ",")),
+    token(prefix + "["),
+    repeat(choice(token(repeat1(digit)), ",")),
     "]",
   );
 }
@@ -159,9 +151,11 @@ module.exports = grammar({
 
   extras: ($) => [/\s/, $.line_comment],
 
-  // externals: ($) => [],
+  // precedences: ($) => [[$._range_with_next, $.range_op_inclusive]],
 
-  // conflicts: ($) => [],
+  // conflicts: ($) => [[$._range_with_next, $.range_op_inclusive]],
+
+  // externals: ($) => [],
 
   // supertypes: ($) => [],
 
@@ -170,7 +164,7 @@ module.exports = grammar({
   rules: {
     /// File
 
-    nu_script: ($) => seq(optional($.shebang), optional($._block_body_lf)),
+    nu_script: ($) => seq(optional($.shebang), $._block_body_lf),
 
     shebang: ($) => seq("#!", /.*\n/),
 
@@ -232,7 +226,7 @@ module.exports = grammar({
     // Inside a regular block, pipelines should always be terminated by line
     // feeds or semicolon.
     _block_body_lf: ($) =>
-      alias(repeat1(seq($.pipeline, $._terminator_lf)), $.block),
+      alias(repeat1(seq(optional($.pipeline), $._terminator_lf)), $.block),
 
     // Inside the block of a subexpression, there is usually only one pipeline.
     // Line feeds are ignored to allow ergonomic multi line command invocations,
@@ -245,15 +239,17 @@ module.exports = grammar({
 
     pipeline: ($) => $._pipeline_element,
 
-    _terminator_lf: (_) => /[;\n]/,
-    _terminator_sub: (_) => ";",
+    _terminator_lf: (_) => prec(10, /[;\n]/),
+    _terminator_sub: (_) => prec(10, ";"),
 
     // [TODO]
     // redirection
     _pipeline_element: ($) => $._expression,
 
-    _expression: ($) => choice($._literal, $.string, $.subexpression),
+    _expression: ($) => choice($.range, $._literal, $.string, $.subexpression),
     subexpression: ($) => seq("(", alias($._block_body_sub, $.block), ")"),
+
+    _subexpression_immediate: ($) => seq(token.immediate("("), alias($._block_body_sub, $.block), ")"),
 
     _literal: ($) =>
       choice(
@@ -275,16 +271,55 @@ module.exports = grammar({
     // also, we cannot use standalone rules for individual digits to avoid the
     // repetition because they all have to be parsed as a single token to avoid
     // conflicts, and you cannot use the token() function on a non-terminal rule
-    //
-    // yes, as of this writing, the sign can come *after* the radix prefix
-    literal_int: (_) =>
-      token(
-        choice(
-          seq(optional(_SIGN), _LITERAL_DECIMAL),
-          seq("0x", optional(_SIGN), _LITERAL_HEX),
-          seq("0o", optional(_SIGN), _LITERAL_OCTAL),
-          seq("0b", optional(_SIGN), _LITERAL_BINARY),
+    literal_int: ($) =>
+      choice(
+        _LITERAL_DECIMAL,
+        seq(_SIGN, token.immediate(_LITERAL_DECIMAL)),
+
+        // yes, as of this writing, the sign can come *after* the radix prefix
+        seq(
+          "0x",
+          optional(token.immediate(_SIGN)),
+          token.immediate(_LITERAL_HEX),
         ),
+        seq(
+          "0o",
+          optional(token.immediate(_SIGN)),
+          token.immediate(_LITERAL_OCTAL),
+        ),
+        seq(
+          "0b",
+          optional(token.immediate(_SIGN)),
+          token.immediate(_LITERAL_BINARY),
+        ),
+      ),
+
+    _literal_int_immediate: ($) =>
+      alias(
+        choice(
+          seq(
+            optional(token.immediate(_SIGN)),
+            token.immediate(_LITERAL_DECIMAL),
+          ),
+
+          // yes, as of this writing, the sign can come *after* the radix prefix
+          seq(
+            token.immediate("0x"),
+            optional(token.immediate(_SIGN)),
+            token.immediate(_LITERAL_HEX),
+          ),
+          seq(
+            token.immediate("0o"),
+            optional(token.immediate(_SIGN)),
+            token.immediate(_LITERAL_OCTAL),
+          ),
+          seq(
+            token.immediate("0b"),
+            optional(token.immediate(_SIGN)),
+            token.immediate(_LITERAL_BINARY),
+          ),
+        ),
+        $.literal_int,
       ),
 
     // Taken from the Rust reference, since the underlying nu parser just parses
@@ -299,25 +334,81 @@ module.exports = grammar({
     //
     // FLOAT_EXPONENT :
     //    (e|E) (+|-)? (DEC_DIGIT|_)* DEC_DIGIT (DEC_DIGIT|_)*
-    literal_float: ($) =>
-      token(
+    literal_float: ($) => choice($._float_short, $._float_complete),
+    _literal_float_immediate: ($) =>
+      alias(
+        choice($._float_short_immediate, $._float_complete_immediate),
+        $.literal_float,
+      ),
+
+    _float_complete: (_) =>
+      choice(
         seq(
-          optional(_SIGN),
+          _SIGN,
           choice(
-            /inf|nan/i,
-            seq(_LITERAL_DECIMAL, _FLOAT_EXPONENT),
-            prec(
-              1,
-              seq(
-                _LITERAL_DECIMAL,
-                ".",
-                _LITERAL_DECIMAL,
-                optional(_FLOAT_EXPONENT),
-              ),
+            token.immediate(/inf|nan/i),
+
+            seq(
+              token.immediate(_LITERAL_DECIMAL),
+              token.immediate(_FLOAT_EXPONENT),
             ),
-            seq(_LITERAL_DECIMAL, "."),
+
+            seq(
+              token.immediate(_LITERAL_DECIMAL),
+              token.immediate("."),
+              token.immediate(_LITERAL_DECIMAL),
+              optional(token.immediate(_FLOAT_EXPONENT)),
+            ),
           ),
         ),
+        // must duplicate the rule without the sign instead of a simple optional
+        // because if it's missing, then the first token can't be immediate, but
+        // if it is, then the next token must be immediate
+        choice(
+          /inf|nan/i,
+          seq(_LITERAL_DECIMAL, token.immediate(_FLOAT_EXPONENT)),
+          seq(
+            _LITERAL_DECIMAL,
+            token.immediate("."),
+            token.immediate(_LITERAL_DECIMAL),
+            optional(token.immediate(_FLOAT_EXPONENT)),
+          ),
+        ),
+      ),
+    _float_complete_immediate: (_) =>
+      seq(
+        optional(token.immediate(_SIGN)),
+        choice(
+          token.immediate(/inf|nan/i),
+
+          seq(
+            token.immediate(_LITERAL_DECIMAL),
+            token.immediate(_FLOAT_EXPONENT),
+          ),
+
+          seq(
+            token.immediate(_LITERAL_DECIMAL),
+            token.immediate("."),
+            token.immediate(_LITERAL_DECIMAL),
+            optional(token.immediate(_FLOAT_EXPONENT)),
+          ),
+        ),
+      ),
+
+    _float_short: (_) =>
+      choice(
+        seq(_SIGN, token.immediate(_LITERAL_DECIMAL), token.immediate(".")),
+        seq(_LITERAL_DECIMAL, token.immediate(".")),
+      ),
+
+    _float_short_immediate: (_) =>
+      choice(
+        seq(
+          token.immediate(_SIGN),
+          token.immediate(_LITERAL_DECIMAL),
+          token.immediate("."),
+        ),
+        seq(token.immediate(_LITERAL_DECIMAL), token.immediate(".")),
       ),
 
     literal_binary: (_) =>
@@ -375,6 +466,50 @@ module.exports = grammar({
           ),
         ),
       ),
+
+    range: ($) =>
+      seq(
+        field("from", $._range_element_from),
+        optional(
+          seq($._range_op_inclusive, field("next", $._range_element_next)),
+        ),
+        field(
+          "op",
+          choice(
+            alias($._range_op_inclusive, $.range_op_inclusive),
+            $.range_op_right_exclusive,
+          ),
+        ),
+        field("to", $._range_element_to),
+      ),
+
+    // [TODO] or variable
+    _range_element_from: ($) =>
+      choice(
+        $.literal_int,
+        // `<num> . ..` is ambiguous, so only allow float syntaxes that don't end with a .
+        alias($._float_complete, $.literal_float),
+        $.subexpression,
+      ),
+
+    _range_element_next: ($) =>
+      choice(
+        $._literal_int_immediate,
+        alias($._float_complete_immediate, $.literal_float),
+        alias($._subexpression_immediate, $.subexpression),
+      ),
+
+    _range_element_to: ($) =>
+      choice(
+        $._literal_int_immediate,
+        // `.. <num> .` is not ambiguous, so it is allowed
+        $._literal_float_immediate,
+        alias($._subexpression_immediate, $.subexpression),
+      ),
+
+    _range_op_inclusive: ($) =>
+      seq(token.immediate(".."), optional(token.immediate("="))),
+    range_op_right_exclusive: (_) => token.immediate("..<"),
 
     /// Controls
 

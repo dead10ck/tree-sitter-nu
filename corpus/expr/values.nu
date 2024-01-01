@@ -303,3 +303,106 @@ $"double quoted string with an\"\'escape sequence and (2) ("interpolation")s"
     )
   )
 )
+
+=====
+values-range-literals
+=====
+
+0..1
+1..100
+1..5..100
+1..5..=100
+20..30..<100
+
+-----
+
+(nu_script
+  (block
+    (pipeline
+      (range
+        from: (literal_int)
+        op: (range_op_inclusive)
+        to: (literal_int)
+      )
+    )
+    (pipeline
+      (range
+        from: (literal_int)
+        op: (range_op_inclusive)
+        to: (literal_int)
+      )
+    )
+    (pipeline
+      (range
+        from: (literal_int)
+        next: (literal_int)
+        op: (range_op_inclusive)
+        to: (literal_int)
+      )
+    )
+    (pipeline
+      (range
+        from: (literal_int)
+        next: (literal_int)
+        op: (range_op_inclusive)
+        to: (literal_int)
+      )
+    )
+    (pipeline
+      (range
+        from: (literal_int)
+        next: (literal_int)
+        op: (range_op_right_exclusive)
+        to: (literal_int)
+      )
+    )
+  )
+)
+
+=====
+values-range-subexpressions
+=====
+
+1..(5)..100
+(1)..(5)..(100)
+(1)..(5)..<(100)
+(1)..(5)..=100
+
+-----
+
+(nu_script
+  (block
+    (pipeline
+      (range
+        from: (literal_int)
+        next: (subexpression (block (pipeline (literal_int))))
+        op: (range_op_inclusive)
+        to: (literal_int)
+      )
+    )
+    (pipeline
+      (range
+        from: (subexpression (block (pipeline (literal_int))))
+        next: (subexpression (block (pipeline (literal_int))))
+        op: (range_op_inclusive)
+        to: (subexpression (block (pipeline (literal_int))))
+      )
+    )
+    (pipeline
+      (range
+        from: (subexpression (block (pipeline (literal_int))))
+        next: (subexpression (block (pipeline (literal_int))))
+        op: (range_op_right_exclusive)
+        to: (subexpression (block (pipeline (literal_int))))
+      )
+    )
+    (pipeline
+      (range
+        from: (subexpression (block (pipeline (literal_int))))
+        next: (subexpression (block (pipeline (literal_int))))
+        op: (range_op_inclusive)
+        to: (literal_int)
+      )
+    )
+  )
+)
