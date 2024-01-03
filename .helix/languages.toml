@@ -1,0 +1,10 @@
+[[language]]
+name = "javascript"
+auto-format = true
+
+[language.formatter]
+command = "prettier"
+args = [
+  "--parser",
+  "babel",
+]
