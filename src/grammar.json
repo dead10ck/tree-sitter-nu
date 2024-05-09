@@ -785,7 +785,8 @@
                   "type": "IMMEDIATE_TOKEN",
                   "content": {
                     "type": "PATTERN",
-                    "value": "inf|nan"
+                    "value": "inf|nan",
+                    "flags": "i"
                   }
                 },
                 {
@@ -1045,7 +1046,8 @@
           "members": [
             {
               "type": "PATTERN",
-              "value": "inf|nan"
+              "value": "inf|nan",
+              "flags": "i"
             },
             {
               "type": "SEQ",
@@ -1318,7 +1320,8 @@
               "type": "IMMEDIATE_TOKEN",
               "content": {
                 "type": "PATTERN",
-                "value": "inf|nan"
+                "value": "inf|nan",
+                "flags": "i"
               }
             },
             {
@@ -2249,4 +2252,3 @@
   "inline": [],
   "supertypes": []
 }
-
